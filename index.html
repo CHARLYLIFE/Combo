@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda de Combos & Productos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #0b0f19; color: #fff; padding-bottom: 90px; }
+
+        header {
+            background: #1e293b; padding: 15px 20px; text-align: center;
+            border-bottom: 2px solid #00e676; position: sticky; top: 0; z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 1.1rem; color: #00e676; letter-spacing: 0.5px; }
+
+        .tabs { display: flex; background: #0f172a; border-bottom: 1px solid #334155; }
+        .tab-btn {
+            flex: 1; padding: 14px; text-align: center; background: none; border: none;
+            color: #94a3b8; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active { color: #00e676; border-bottom: 3px solid #00e676; background: rgba(0,230,118,0.05); }
+
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card {
+            background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .card-info h3 { font-size: 1rem; margin-bottom: 4px; color: #f8fafc; }
+        .card-info p { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
+        .price { font-weight: bold; color: #00e676; font-size: 0.95rem; }
+
+        .btn {
+            background: #00e676; color: #000; border: none; padding: 8px 14px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-outline { background: transparent; border: 1px solid #00e676; color: #00e676; }
+
+        .cart-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b;
+            padding: 12px 20px; border-top: 1px solid #334155; display: flex;
+            justify-content: space-between; align-items: center; z-index: 100;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+        }
+        .cart-info { font-size: 0.85rem; }
+        .cart-info span { color: #00e676; font-weight: bold; }
+
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none;
+            justify-content: center; align-items: center; z-index: 200; padding: 20px;
+        }
+        .modal-content {
+            background: #1e293b; width: 100%; max-width: 400px; padding: 20px;
+            border-radius: 16px; border: 1px solid #334155;
+        }
+        .modal-content h2 { font-size: 1.1rem; margin-bottom: 15px; color: #00e676; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+        .form-control {
+            width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155;
+            color: #fff; border-radius: 8px; font-size: 0.9rem;
+        }
+        .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btns button { flex: 1; }
+        .loading { text-align: center; color: #94a3b8; padding: 20px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📦 Catálogo Digital en Vivo</h1>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="cambiarTab('combos', this)">Combos Armados</button>
+        <button class="tab-btn" onclick="cambiarTab('personalizado', this)">Arma tu Combo 🛠️</button>
+    </div>
+
+    <div class="container">
+        <!-- SECCIÓN 1: COMBOS -->
+        <div id="combos" class="section active">
+            <div id="lista-combos"><div class="loading">Cargando combos desde Google Sheets...</div></div>
+        </div>
+
+        <!-- SECCIÓN 2: ARMA TU COMBO -->
+        <div id="personalizado" class="section">
+            <p style="font-size: 0.8rem; color: #fbbf24; margin-bottom: 10px;">⚠️ Mínimo de selección: 5 artículos sueltos.</p>
+            <div id="lista-articulos"><div class="loading">Cargando productos desde Google Sheets...</div></div>
+        </div>
+    </div>
+
+    <!-- CARRITO FLOTANTE -->
+    <div class="cart-bar">
+        <div class="cart-info">
+            <div>Items: <span id="cart-count">0</span></div>
+            <div>Total: <span id="cart-total">$0.00</span></div>
+        </div>
+        <button class="btn" id="btn-pedir" onclick="abrirModalPedido()" disabled style="opacity:0.5;">Pedir por WhatsApp 🚀</button>
+    </div>
+
+    <!-- MODAL DATOS DEL CLIENTE -->
+    <div class="modal" id="modalPedido">
+        <div class="modal-content">
+            <h2>Finalizar Pedido</h2>
+            <div class="form-group"><label>Nombre y Apellidos</label><input type="text" id="cli-nombre" class="form-control" placeholder="Ej: Juan Pérez"></div>
+            <div class="form-group"><label>Dirección de Entrega</label><input type="text" id="cli-direccion" class="form-control" placeholder="Calle, número, reparto..."></div>
+            <div class="form-group"><label>Número de Teléfono</label><input type="tel" id="cli-telefono" class="form-control" placeholder="+53..."></div>
+            <div class="modal-btns">
+                <button class="btn btn-outline" onclick="cerrarModalPedido()">Cancelar</button>
+                <button class="btn" onclick="enviarWhatsApp()">Enviar WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tus enlaces directos de Google Sheets
+        const URL_CSV_1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?output=csv';
+        
+        let combosArmados = [];
+        let articulosSueltos = [];
+        let carrito = { tipo: 'combo', items: {} };
+
+        // Parser universal de CSV a objetos JS
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toUpperCase());
+            
+            return lines.slice(1).map((line, idx) => {
+                if (!line.trim()) return null;
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                let obj = { ID: 'item_' + idx };
+                headers.forEach((h, i) => {
+                    obj[h] = values[i] || '';
+                });
+                return obj;
+            }).filter(Boolean);
+        }
+
+        async function cargarCatalogos() {
+            try {
+                const response = await fetch(URL_CSV_1);
+                const csvData = await response.text();
+                const parsedData = parseCSV(csvData);
+
+                // Separar de acuerdo a la estructura de columnas encontrada
+                parsedData.forEach(item => {
+                    if (item.DETALLES || item.DETALLES === '' || item.DESC) {
+                        combosArmados.push(item);
+                    } else {
+                        articulosSueltos.push(item);
+                    }
+                });
+
+                // Si todo vino en un mismo CSV pero sin separar, dividimos responsivamente
+                if (combosArmados.length === 0 && articulosSueltos.length > 0) {
+                    combosArmados = [...articulosSueltos];
+                }
+
+                renderizarTodo();
+            } catch (err) {
+                console.error("Error al sincronizar con Google Sheets:", err);
+                document.getElementById('lista-combos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo.</p>';
+                document.getElementById('lista-articulos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo.</p>';
+            }
+        }
+
+        function cambiarTab(tabId, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+            carrito = { tipo: tabId === 'combos' ? 'combo' : 'suelto', items: {} };
+            
+            document.querySelectorAll('[id^="cant-"]').forEach(el => el.innerText = '0');
+            actualizarUI();
+        }
+
+        function renderizarTodo() {
+            // Render Combos
+            const containerCombos = document.getElementById('lista-combos');
+            if (combosArmados.length === 0) {
+                containerCombos.innerHTML = '<p style="color:#94a3b8;">No hay combos configurados en la hoja.</p>';
+            } else {
+                containerCombos.innerHTML = combosArmados.map((c, i) => {
+                    const id = c.ID || 'c_' + i;
+                    const nombre = c.NOMBRE || 'Combo Sin Nombre';
+                    const desc = c.DETALLES || c.DESC || 'Excelente opción de compra';
+                    const precio = parseFloat(c.PRECIO || 0);
+
+                    return `
+                        <div class="card">
+                            <div class="card-info">
+                                <h3>${nombre}</h3>
+                                <p>${desc}</p>
+                                <div class="price">$${precio.toFixed(2)}</div>
+                            </div>
+                            <button class="btn" onclick="seleccionarCombo('${id}', '${nombre}', ${precio})">Elegir</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render Productos Sueltos
+            const containerArt = document.getElementById('lista-articulos');
+            if (articulosSueltos.length === 0) {
+                containerArt.innerHTML = '<p style="color:#94a3b8;">No hay productos sueltos en la hoja.</p>';
+            } else {
+                containerArt.innerHTML = articulosSueltos.map((a, i) => {
+                    const id = a.ID || 'a_' + i;
+                    const nombre = a.NOMBRE || 'Producto';
+                    const precio = parseFloat(a.PRECIO || 0);
+
+                    return `
+                        <div class="card">
+                            <div class="card-info">
+                                <h3>${nombre}</h3>
+                                <div class="price">$${precio.toFixed(2)}</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button class="btn btn-outline" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, -1)">-</button>
+                                <span id="cant-${id}" style="font-weight:bold; min-width:20px; text-align:center;">0</span>
+                                <button class="btn" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, 1)">+</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function seleccionarCombo(id, nombre, precio) {
+            carrito.tipo = 'combo';
+            carrito.items = { [id]: { nombre, precio, cantidad: 1 } };
+            actualizarUI();
+        }
+
+        function modificarCantidad(id, nombre, precio, cambio) {
+            if (carrito.tipo !== 'suelto') { carrito.tipo = 'suelto'; carrito.items = {}; }
+            if (!carrito.items[id]) carrito.items[id] = { nombre, precio, cantidad: 0 };
+            
+            carrito.items[id].cantidad += cambio;
+
+            if (carrito.items[id].cantidad <= 0) delete carrito.items[id];
+            
+            const span = document.getElementById(`cant-${id}`);
+            if(span) span.innerText = carrito.items[id] ? carrito.items[id].cantidad : 0;
+            actualizarUI();
+        }
+
+        function actualizarUI() {
+            let totalItems = 0, totalPrice = 0;
+            for (let id in carrito.items) {
+                totalItems += carrito.items[id].cantidad;
+                totalPrice += carrito.items[id].precio * carrito.items[id].cantidad;
+            }
+            document.getElementById('cart-count').innerText = totalItems;
+            document.getElementById('cart-total').innerText = `$${totalPrice.toFixed(2)}`;
+
+            const btnPedir = document.getElementById('btn-pedir');
+            if ((carrito.tipo === 'suelto' && totalItems >= 5) || (carrito.tipo === 'combo' && totalItems > 0)) {
+                btnPedir.disabled = false; btnPedir.style.opacity = '1';
+            } else {
+                btnPedir.disabled = true; btnPedir.style.opacity = '0.5';
+            }
+        }
+
+        function abrirModalPedido() { document.getElementById('modalPedido').style.display = 'flex'; }
+        function cerrarModalPedido() { document.getElementById('modalPedido').style.display = 'none'; }
+
+        function enviarWhatsApp() {
+            const nombre = document.getElementById('cli-nombre').value.trim();
+            const direccion = document.getElementById('cli-direccion').value.trim();
+            const telefono = document.getElementById('cli-telefono').value.trim();
+
+            if (!nombre || !direccion || !telefono) {
+                alert('Por favor completa todos los datos de entrega.');
+                return;
+            }
+
+            let mensaje = `*¡NUEVO PEDIDO!* 🛒\n\n`;
+            mensaje += `👤 *Cliente:* ${nombre}\n`;
+            mensaje += `📍 *Dirección:* ${direccion}\n`;
+            mensaje += `📞 *Teléfono:* ${telefono}\n\n`;
+            mensaje += `📦 *Detalle del pedido:*\n`;
+
+            let total = 0;
+            for (let id in carrito.items) {
+                let item = carrito.items[id];
+                let subtotal = item.precio * item.cantidad;
+                mensaje += `- ${item.nombre} x${item.cantidad} ($${subtotal.toFixed(2)})\n`;
+                total += subtotal;
+            }
+
+            mensaje += `\n💰 *Total a pagar:* $${total.toFixed(2)}`;
+
+            const numeroWhatsApp = "+5350306150";
+            const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+            
+            window.open(url, '_blank');
+            cerrarModalPedido();
+        }
+
+        // Cargar datos al iniciar
+        cargarCatalogos();
+    </script>
+</body>
+</html>
