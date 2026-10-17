@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda de Combos & Productos</title>
+
+    <!-- Enlaces y metadatos PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background-color: #0b0f19; color: #fff; padding-bottom: 90px; }
@@ -121,7 +127,16 @@
     </div>
 
     <script>
-        // Tus enlaces directos de Google Sheets
+        // Registro del Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker activo'))
+                    .catch(err => console.error('Error SW:', err));
+            });
+        }
+
+        // Tu enlace publicado de Google Sheets
         const URL_CSV_1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?output=csv';
         
         let combosArmados = [];
@@ -151,7 +166,7 @@
                 const csvData = await response.text();
                 const parsedData = parseCSV(csvData);
 
-                // Separar de acuerdo a la estructura de columnas encontrada
+                // Clasificación automática de combos y productos según columnas presentes
                 parsedData.forEach(item => {
                     if (item.DETALLES || item.DETALLES === '' || item.DESC) {
                         combosArmados.push(item);
@@ -160,7 +175,6 @@
                     }
                 });
 
-                // Si todo vino en un mismo CSV pero sin separar, dividimos responsivamente
                 if (combosArmados.length === 0 && articulosSueltos.length > 0) {
                     combosArmados = [...articulosSueltos];
                 }
@@ -308,7 +322,6 @@
             cerrarModalPedido();
         }
 
-        // Cargar datos al iniciar
         cargarCatalogos();
     </script>
 </body>
