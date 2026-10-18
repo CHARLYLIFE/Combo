@@ -136,8 +136,9 @@
             });
         }
 
-        // Tu enlace publicado de Google Sheets
-        const URL_CSV_1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?output=csv';
+        // Tus enlaces publicados de Google Sheets (Combos y Productos)
+        const URL_CSV_COMBOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=0&single=true&output=csv';
+        const URL_CSV_PRODUCTOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
         
         let combosArmados = [];
         let articulosSueltos = [];
@@ -162,28 +163,21 @@
 
         async function cargarCatalogos() {
             try {
-                const response = await fetch(URL_CSV_1);
-                const csvData = await response.text();
-                const parsedData = parseCSV(csvData);
+                // Descargar Hoja de Combos
+                const resCombos = await fetch(URL_CSV_COMBOS);
+                const textCombos = await resCombos.text();
+                combosArmados = parseCSV(textCombos);
 
-                // Clasificación automática de combos y productos según columnas presentes
-                parsedData.forEach(item => {
-                    if (item.DETALLES || item.DETALLES === '' || item.DESC) {
-                        combosArmados.push(item);
-                    } else {
-                        articulosSueltos.push(item);
-                    }
-                });
-
-                if (combosArmados.length === 0 && articulosSueltos.length > 0) {
-                    combosArmados = [...articulosSueltos];
-                }
+                // Descargar Hoja de Productos
+                const resProductos = await fetch(URL_CSV_PRODUCTOS);
+                const textProductos = await resProductos.text();
+                articulosSueltos = parseCSV(textProductos);
 
                 renderizarTodo();
             } catch (err) {
                 console.error("Error al sincronizar con Google Sheets:", err);
-                document.getElementById('lista-combos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo.</p>';
-                document.getElementById('lista-articulos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo.</p>';
+                document.getElementById('lista-combos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo de combos.</p>';
+                document.getElementById('lista-articulos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo de productos.</p>';
             }
         }
 
