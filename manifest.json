@@ -1,7 +1,6 @@
 {
-  "name": "Combos & Productos",
-  "short_name": "CombosApp",
-  "description": "Catálogo dinámico de combos y pedidos por WhatsApp",
+  "name": "Tienda de Combos",
+  "short_name": "Combos",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0f19",
