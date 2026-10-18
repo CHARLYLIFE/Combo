@@ -34,21 +34,21 @@
         .section.active { display: block; }
 
         .card {
-            background: #1e293b; border-radius: 12px; padding: 12px; margin-bottom: 12px;
-            display: flex; gap: 12px; align-items: center;
-            border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            background: #1e293b; border-radius: 14px; padding: 14px; margin-bottom: 14px;
+            display: flex; gap: 15px; align-items: center;
+            border: 1px solid #334155; box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
         .card-img {
-            width: 70px; height: 70px; border-radius: 8px; object-fit: cover;
+            width: 110px; height: 110px; border-radius: 10px; object-fit: cover;
             background-color: #0f172a; border: 1px solid #334155; flex-shrink: 0;
         }
-        .card-info { flex: 1; }
-        .card-info h3 { font-size: 1rem; margin-bottom: 4px; color: #f8fafc; }
-        .card-info p { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
-        .price { font-weight: bold; color: #00e676; font-size: 0.95rem; }
+        .card-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .card-info h3 { font-size: 1.05rem; margin-bottom: 6px; color: #f8fafc; }
+        .card-info p { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; }
+        .price { font-weight: bold; color: #00e676; font-size: 1.05rem; }
 
         .btn {
-            background: #00e676; color: #000; border: none; padding: 8px 14px;
+            background: #00e676; color: #000; border: none; padding: 9px 16px;
             border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem;
             transition: transform 0.1s;
         }
@@ -239,10 +239,12 @@
                                 <h3>${nombre}</h3>
                                 <div class="price">$${precio.toFixed(2)}</div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <button class="btn btn-outline" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, -1)">-</button>
-                                <span id="cant-${id}" style="font-weight:bold; min-width:20px; text-align:center;">0</span>
-                                <button class="btn" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, 1)">+</button>
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <button class="btn btn-outline" style="padding: 6px 12px;" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, -1)">-</button>
+                                    <span id="cant-${id}" style="font-weight:bold; min-width:24px; text-align:center; font-size:1.1rem;">0</span>
+                                    <button class="btn" style="padding: 6px 12px;" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, 1)">+</button>
+                                </div>
                             </div>
                         </div>
                     `;
