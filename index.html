@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda de Combos & Productos</title>
+    <title>Combos Camagüey - Tienda Online</title>
 
     <!-- Enlaces y metadatos PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e293b">
+    <meta name="theme-color" content="#131921">
     <link rel="apple-touch-icon" href="icon-192.png">
 
     <!-- GOOGLE ANALYTICS -->
@@ -16,186 +16,236 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-B0T7Z6F4NH');
     </script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         
-        /* FONDO GENERAL DE LA APP CON TEXTURA OSCURA PROFESIONAL */
         body { 
-            background-color: #0b0f19; 
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(0, 230, 118, 0.05) 0%, transparent 70%),
-                radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
-            background-size: 100% 100%, 24px 24px;
+            background-color: #0f172a; 
             color: #fff; 
-            padding-bottom: 90px; 
+            padding-bottom: 100px; 
         }
 
-        /* HEADER CON DEGRADADO Y IMAGEN_11.PNG */
+        /* ESTILO AMAZON: HEADER Y BUSCADOR */
         header {
-            position: sticky; top: 0; z-index: 10;
-            /* degradado oscuro sobre la imagen para resaltar las letras */
-            background: linear-gradient(180deg, rgba(11, 15, 25, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%),
-                        url('image_11.png') center/cover no-repeat;
-            padding: 22px 20px; text-align: center;
-            border-bottom: 2px solid #00e676;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            backdrop-filter: blur(6px);
+            background-color: #131921;
+            padding: 12px 16px;
+            position: sticky; top: 0; z-index: 100;
+            border-bottom: 2px solid #febd69;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
-        h1 { 
-            font-size: 1.3rem; 
-            color: #00e676; 
-            letter-spacing: 0.6px; 
-            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
-            font-weight: 700;
+        
+        .header-top {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .header-logo { font-size: 1.2rem; font-weight: 800; color: #febd69; text-decoration: none; }
+
+        .search-bar-container {
+            display: flex; background: #fff; border-radius: 8px; overflow: hidden; width: 100%;
+            border: 2px solid transparent; transition: border-color 0.2s;
+        }
+        .search-bar-container:focus-within { border-color: #febd69; }
+        .search-input {
+            flex: 1; padding: 10px 14px; border: none; outline: none; font-size: 0.95rem; color: #111;
+        }
+        .search-btn {
+            background: #febd69; border: none; padding: 0 16px; cursor: pointer; font-size: 1.1rem;
         }
 
-        /* PESTAÑAS MÁS GRANDES Y DESTACADAS */
-        .tabs { display: flex; background: #0f172a; border-bottom: 1px solid #334155; }
-        .tab-btn {
-            flex: 1; padding: 18px 10px; text-align: center; background: none; border: none;
-            color: #94a3b8; font-weight: 700; cursor: pointer; font-size: 0.95rem;
-            transition: all 0.25s ease; letter-spacing: 0.3px;
+        /* CATEGORÍAS / PESTAÑAS TIPO AMAZON (DESLIZABLES) */
+        .categories-nav {
+            display: flex; background: #232f3e; overflow-x: auto; white-space: nowrap;
+            padding: 0 8px; border-bottom: 1px solid #374151; scrollbar-width: none;
         }
-        .tab-btn.active { 
-            color: #00e676; 
-            border-bottom: 4px solid #00e676; 
-            background: rgba(0,230,118,0.08); 
-            font-size: 1rem;
+        .categories-nav::-webkit-scrollbar { display: none; }
+        
+        .cat-btn {
+            padding: 12px 16px; background: none; border: none; color: #cbd5e1;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .cat-btn.active {
+            color: #febd69; border-bottom: 3px solid #febd69; background: rgba(254, 189, 105, 0.08);
         }
 
-        /* Contenedor adaptado a pantalla completa en móviles */
-        .container { padding: 12px 10px; width: 100%; max-width: 100%; margin: 0; }
+        .container { padding: 14px 10px; width: 100%; max-width: 1200px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
 
-        /* BANNER DESTACADO DE ADVERTENCIA / MÍNIMO */
+        /* BANNER DE ALERTA (MÍNIMO 5) */
         .alert-banner {
-            background: rgba(251, 191, 36, 0.12);
-            border: 1px solid #fbbf24;
-            border-left: 5px solid #fbbf24;
+            background: rgba(254, 189, 105, 0.15);
+            border: 1px solid #febd69;
             color: #fef08a;
             padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* TARJETAS DE PRODUCTOS */
-        .card {
-            background: #1e293b; border-radius: 14px; padding: 16px; margin-bottom: 14px;
-            display: flex; gap: 16px; align-items: center; width: 100%;
-            border: 1px solid #334155; box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        /* CUADRÍCULA DE PRODUCTOS (GRID ESTILO AMAZON) */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media (min-width: 768px) {
+            .products-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        }
+
+        /* TARJETA DE PRODUCTO */
+        .product-card {
+            background: #1e293b; border-radius: 12px; padding: 12px;
+            border: 1px solid #334155; display: flex; flex-direction: column;
+            justify-content: space-between; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .product-img-container {
+            width: 100%; height: 140px; border-radius: 8px; overflow: hidden;
+            background: #0f172a; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+        }
+        .product-img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .product-title {
+            font-size: 0.9rem; font-weight: 600; color: #f8fafc; margin-bottom: 4px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            height: 2.6em; line-height: 1.3;
         }
         
-        .card-img {
-            width: 120px; height: 120px; border-radius: 12px; object-fit: cover;
-            background-color: #0f172a; border: 1px solid #334155; flex-shrink: 0;
+        .product-desc {
+            font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
+
+        /* PRECIO DEBAJO DE LA IMAGEN */
+        .product-price {
+            font-size: 1.1rem; font-weight: 800; color: #00e676; margin-bottom: 10px;
+        }
+
+        /* CONTROLES DECANTIDAD Y BOTONES */
+        .product-actions { display: flex; flex-direction: column; gap: 6px; }
         
-        .card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-        .card-info h3 { font-size: 1.15rem; margin-bottom: 6px; color: #f8fafc; word-break: break-word; }
-        .card-info p { 
-            font-size: 0.85rem; 
-            color: #94a3b8; 
-            margin-bottom: 8px; 
-            line-height: 1.4; 
-            white-space: pre-line;
+        .btn-add {
+            background: #febd69; color: #111; border: none; padding: 8px;
+            border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            width: 100%; transition: background 0.2s;
         }
-        .price { font-weight: bold; color: #00e676; font-size: 1.15rem; }
+        .btn-add:hover { background: #f3a847; }
 
-        .btn {
-            background: #00e676; color: #000; border: none; padding: 10px 18px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
-            transition: all 0.2s;
+        .qty-control {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #0f172a; border-radius: 6px; border: 1px solid #334155; padding: 2px;
         }
-        .btn:active { transform: scale(0.95); }
-        .btn-outline { background: transparent; border: 1px solid #00e676; color: #00e676; }
-
-        /* ESTILOS DEL BOTÓN DE WHATSAPP INACTIVO Y ACTIVO */
-        .btn-whastapp {
-            background: #00e676;
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
+        .qty-btn {
+            background: #334155; color: #fff; border: none; width: 28px; height: 28px;
+            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;
         }
+        .qty-num { font-weight: bold; font-size: 0.95rem; color: #febd69; }
 
-        .btn-whastapp:disabled {
-            background: #334155 !important;
-            color: #94a3b8 !important;
-            border: 1px solid #475569 !important;
-            cursor: not-allowed !important;
-            box-shadow: none !important;
-            opacity: 0.7 !important;
-        }
-
+        /* BARRA INFERIOR DE CARRITO */
         .cart-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b;
-            padding: 12px 20px; border-top: 1px solid #334155; display: flex;
-            justify-content: space-between; align-items: center; z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #131921;
+            padding: 12px 20px; border-top: 2px solid #febd69; display: flex;
+            justify-content: space-between; align-items: center; z-index: 200;
             box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
         }
         .cart-info { font-size: 0.85rem; }
-        .cart-info span { color: #00e676; font-weight: bold; }
+        .cart-info span { color: #febd69; font-weight: bold; }
 
+        .btn-whatsapp {
+            background: #00e676; color: #000; border: none; padding: 10px 18px;
+            border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3); transition: opacity 0.2s;
+        }
+        .btn-whatsapp:disabled {
+            background: #334155 !important; color: #94a3b8 !important; cursor: not-allowed; box-shadow: none; opacity: 0.6;
+        }
+
+        /* MODAL DE PEDIDO */
         .modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none;
-            justify-content: center; align-items: center; z-index: 200; padding: 20px;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none;
+            justify-content: center; align-items: center; z-index: 300; padding: 20px;
         }
         .modal-content {
             background: #1e293b; width: 100%; max-width: 400px; padding: 20px;
-            border-radius: 16px; border: 1px solid #334155;
+            border-radius: 14px; border: 1px solid #334155;
         }
-        .modal-content h2 { font-size: 1.1rem; margin-bottom: 15px; color: #00e676; }
+        .modal-content h2 { font-size: 1.1rem; margin-bottom: 15px; color: #febd69; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
         .form-control {
             width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155;
-            color: #fff; border-radius: 8px; font-size: 0.9rem;
+            color: #fff; border-radius: 8px; font-size: 0.9rem; outline: none;
         }
         .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
-        .modal-btns button { flex: 1; }
-        .loading { text-align: center; color: #94a3b8; padding: 20px; font-size: 0.9rem; }
+        .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .loading { text-align: center; color: #94a3b8; padding: 30px; grid-column: span 2; }
     </style>
 </head>
 <body>
 
+    <!-- HEADER ESTILO AMAZON CON BUSCADOR -->
     <header>
-        <h1>📦 Catálogo Digital en Vivo</h1>
+        <div class="header-top">
+            <a href="#" class="header-logo">📦 Combos Camagüey</a>
+        </div>
+        <div class="search-bar-container">
+            <input type="text" id="buscador" class="search-input" placeholder="Buscar productos, combos, medicinas..." oninput="filtrarProductos()">
+            <button class="search-btn">🔍</button>
+        </div>
     </header>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="cambiarTab('combos', this)">Combos Armados</button>
-        <button class="tab-btn" onclick="cambiarTab('personalizado', this)">Arma tu Combo 🛠️</button>
-    </div>
+    <!-- PESTAÑAS DE CATEGORÍAS DESLIZABLES -->
+    <nav class="categories-nav">
+        <button class="cat-btn active" onclick="cambiarSeccion('combos', this)">📦 Combos</button>
+        <button class="cat-btn" onclick="cambiarSeccion('armatubox', this)">🛠️ Arma tu Combo</button>
+        <button class="cat-btn" onclick="cambiarSeccion('medicamentos', this)">💊 Medicamentos</button>
+        <button class="cat-btn" onclick="cambiarSeccion('electrodomesticos', this)">⚡ Electrodomésticos</button>
+        <button class="cat-btn" onclick="cambiarSeccion('miscelaneas', this)">🛒 Misceláneas</button>
+        <button class="cat-btn" onclick="cambiarSeccion('otros', this)">📦 Otros</button>
+    </nav>
 
     <div class="container">
         <!-- SECCIÓN 1: COMBOS -->
         <div id="combos" class="section active">
-            <div id="lista-combos"><div class="loading">Cargando combos desde Google Sheets...</div></div>
+            <div id="grid-combos" class="products-grid"><div class="loading">Cargando combos...</div></div>
         </div>
 
-        <!-- SECCIÓN 2: ARMA TU COMBO -->
-        <div id="personalizado" class="section">
+        <!-- SECCIÓN 2: ARMA TU COMBO (MÍNIMO 5) -->
+        <div id="armatubox" class="section">
             <div class="alert-banner">
                 <span>⚠️</span>
-                <span><strong>Mínimo de compra:</strong> Debes seleccionar al menos 5 artículos sueltos para pedir.</span>
+                <span><strong>Mínimo de compra:</strong> Debes seleccionar al menos 5 artículos en esta sección para poder pedir.</span>
             </div>
-            <div id="lista-articulos"><div class="loading">Cargando productos desde Google Sheets...</div></div>
+            <div id="grid-armatubox" class="products-grid"><div class="loading">Cargando artículos...</div></div>
+        </div>
+
+        <!-- SECCIÓN 3: MEDICAMENTOS -->
+        <div id="medicamentos" class="section">
+            <div id="grid-medicamentos" class="products-grid"><div class="loading">Cargando medicamentos...</div></div>
+        </div>
+
+        <!-- SECCIÓN 4: ELECTRODOMÉSTICOS -->
+        <div id="electrodomesticos" class="section">
+            <div id="grid-electrodomesticos" class="products-grid"><div class="loading">Cargando electrodomésticos...</div></div>
+        </div>
+
+        <!-- SECCIÓN 5: MISCELÁNEAS -->
+        <div id="miscelaneas" class="section">
+            <div id="grid-miscelaneas" class="products-grid"><div class="loading">Cargando misceláneas...</div></div>
+        </div>
+
+        <!-- SECCIÓN 6: OTROS -->
+        <div id="otros" class="section">
+            <div id="grid-otros" class="products-grid"><div class="loading">Cargando otros productos...</div></div>
         </div>
     </div>
 
@@ -205,163 +255,158 @@
             <div>Items: <span id="cart-count">0</span></div>
             <div>Total: <span id="cart-total">$0.00</span></div>
         </div>
-        <button class="btn-whastapp" id="btn-pedir" onclick="abrirModalPedido()" disabled>Pedir por WhatsApp 🚀</button>
+        <button class="btn-whatsapp" id="btn-pedir" onclick="abrirModalPedido()" disabled>Pedir por WhatsApp 🚀</button>
     </div>
 
-    <!-- MODAL DATOS DEL CLIENTE -->
+    <!-- MODAL DATOS CLIENTE -->
     <div class="modal" id="modalPedido">
         <div class="modal-content">
             <h2>Finalizar Pedido</h2>
             <div class="form-group"><label>Nombre y Apellidos</label><input type="text" id="cli-nombre" class="form-control" placeholder="Ej: Juan Pérez"></div>
-            <div class="form-group"><label>Dirección de Entrega</label><input type="text" id="cli-direccion" class="form-control" placeholder="Calle, número, reparto..."></div>
+            <div class="form-group"><label>Dirección de Entrega</label><input type="text" id="cli-direccion" class="form-control" placeholder="Calle, reparto..."></div>
             <div class="form-group"><label>Número de Teléfono</label><input type="tel" id="cli-telefono" class="form-control" placeholder="+53..."></div>
             <div class="modal-btns">
-                <button class="btn btn-outline" onclick="cerrarModalPedido()">Cancelar</button>
-                <button class="btn" onclick="enviarWhatsApp()">Enviar WhatsApp</button>
+                <button style="background:#334155; color:#fff; border:none;" onclick="cerrarModalPedido()">Cancelar</button>
+                <button style="background:#00e676; color:#000; border:none;" onclick="enviarWhatsApp()">Enviar WhatsApp</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Registrar Service Worker para PWA
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker activo'))
-                    .catch(err => console.error('Error SW:', err));
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
+        // CSV URL (Usamos la misma hoja o puedes separar por GID si lo prefieres)
         const URL_CSV_COMBOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=0&single=true&output=csv';
         const URL_CSV_PRODUCTOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
-        
-        let combosArmados = [];
-        let articulosSueltos = [];
-        let carrito = { tipo: 'combo', items: {} };
+
+        let datosGlobales = {
+            combos: [],
+            armatubox: [],
+            medicamentos: [],
+            electrodomesticos: [],
+            miscelaneas: [],
+            otros: []
+        };
+
+        let seccionActual = 'combos';
+        let carrito = { tipo: 'combos', items: {} };
 
         function parseCSV(text) {
             const lines = text.trim().split('\n');
             if (lines.length < 2) return [];
             const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toUpperCase());
-            
             return lines.slice(1).map((line, idx) => {
                 if (!line.trim()) return null;
                 const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
                 let obj = { ID: 'item_' + idx };
-                headers.forEach((h, i) => {
-                    obj[h] = values[i] || '';
-                });
+                headers.forEach((h, i) => { obj[h] = values[i] || ''; });
                 return obj;
             }).filter(Boolean);
         }
 
-        async function cargarCatalogos() {
+        async function cargarDatos() {
             try {
-                const resCombos = await fetch(URL_CSV_COMBOS);
-                const textCombos = await resCombos.text();
-                combosArmados = parseCSV(textCombos);
+                const resC = await fetch(URL_CSV_COMBOS);
+                datosGlobales.combos = parseCSV(await resC.text());
 
-                const resProductos = await fetch(URL_CSV_PRODUCTOS);
-                const textProductos = await resProductos.text();
-                articulosSueltos = parseCSV(textProductos);
+                const resP = await fetch(URL_CSV_PRODUCTOS);
+                const prods = parseCSV(await resP.text());
 
-                renderizarTodo();
+                // Distribuir productos por categoría (puedes ajustar según tu columna CATEGORIA en Sheets o se asignan equitativamente)
+                datosGlobales.armatubox = prods;
+                datosGlobales.medicamentos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('med'));
+                datosGlobales.electrodomesticos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('elect'));
+                datosGlobales.miscelaneas = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('misc'));
+                datosGlobales.otros = prods.filter(p => !(p.CATEGORIA || '').toLowerCase().match(/med|elect|misc/));
+
+                // Si no hay categorías separadas en la hoja, replicamos para que ninguna sección se quede vacía
+                if(datosGlobales.medicamentos.length === 0) datosGlobales.medicamentos = prods;
+                if(datosGlobales.electrodomesticos.length === 0) datosGlobales.electrodomesticos = prods;
+                if(datosGlobales.miscelaneas.length === 0) datosGlobales.miscelaneas = prods;
+                if(datosGlobales.otros.length === 0) datosGlobales.otros = prods;
+
+                renderizarSeccion(seccionActual);
             } catch (err) {
-                console.error("Error al sincronizar con Google Sheets:", err);
-                document.getElementById('lista-combos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo.</p>';
-                document.getElementById('lista-articulos').innerHTML = '<p style="color:#ef4444">Error al sincronizar catálogo.</p>';
+                console.error("Error cargando catálogos", err);
             }
         }
 
-        function cambiarTab(tabId, btn) {
+        function cambiarSeccion(seccionId, btn) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(seccionId).classList.add('active');
             btn.classList.add('active');
-            carrito = { tipo: tabId === 'combos' ? 'combo' : 'suelto', items: {} };
             
-            document.querySelectorAll('[id^="cant-"]').forEach(el => el.innerText = '0');
+            seccionActual = seccionId;
+            carrito = { tipo: seccionId, items: {} };
             actualizarUI();
+            renderizarSeccion(seccionId);
         }
 
-        function renderizarTodo() {
-            // Render Combos
-            const containerCombos = document.getElementById('lista-combos');
-            if (combosArmados.length === 0) {
-                containerCombos.innerHTML = '<p style="color:#94a3b8;">No hay combos configurados en la hoja.</p>';
-            } else {
-                containerCombos.innerHTML = combosArmados.map((c, i) => {
-                    const id = c.ID || 'c_' + i;
-                    const nombre = c.NOMBRE || 'Combo Sin Nombre';
-                    
-                    let rawDesc = c.DETALLES || c.DESC || 'Excelente opción de compra';
-                    const desc = rawDesc.replaceAll(',', '\n').replaceAll('|', '\n');
+        function renderizarSeccion(seccionId) {
+            const container = document.getElementById(`grid-${seccionId}`);
+            const lista = datosGlobales[seccionId] || [];
 
-                    const precio = parseFloat(c.PRECIO || 0);
-                    const imgUrl = c.IMAGEN || c.FOTO || '';
-                    const imgTag = imgUrl ? `<img src="${imgUrl}" class="card-img" alt="${nombre}" onerror="this.style.display='none'">` : '';
-
-                    return `
-                        <div class="card">
-                            ${imgTag}
-                            <div class="card-info">
-                                <h3>${nombre}</h3>
-                                <p>${desc}</p>
-                                <div class="price">$${precio.toFixed(2)}</div>
-                            </div>
-                            <button class="btn" onclick="seleccionarCombo('${id}', '${nombre}', ${precio})">Elegir</button>
-                        </div>
-                    `;
-                }).join('');
+            if (lista.length === 0) {
+                container.innerHTML = '<p class="loading">No hay productos disponibles.</p>';
+                return;
             }
 
-            // Render Productos Sueltos
-            const containerArt = document.getElementById('lista-articulos');
-            if (articulosSueltos.length === 0) {
-                containerArt.innerHTML = '<p style="color:#94a3b8;">No hay productos sueltos en la hoja.</p>';
-            } else {
-                containerArt.innerHTML = articulosSueltos.map((a, i) => {
-                    const id = a.ID || 'a_' + i;
-                    const nombre = a.NOMBRE || 'Producto';
-                    const precio = parseFloat(a.PRECIO || 0);
-                    const imgUrl = a.IMAGEN || a.FOTO || '';
-                    const imgTag = imgUrl ? `<img src="${imgUrl}" class="card-img" alt="${nombre}" onerror="this.style.display='none'">` : '';
+            container.innerHTML = lista.map((item, i) => {
+                const id = item.ID || `${seccionId}_${i}`;
+                const nombre = item.NOMBRE || 'Producto';
+                let rawDesc = item.DETALLES || item.DESC || '';
+                const desc = rawDesc.replaceAll(',', '\n').replaceAll('|', '\n');
+                const precio = parseFloat(item.PRECIO || 0);
+                const imgUrl = item.IMAGEN || item.FOTO || '';
+                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
-                    return `
-                        <div class="card">
-                            ${imgTag}
-                            <div class="card-info">
-                                <h3>${nombre}</h3>
-                                <div class="price">$${precio.toFixed(2)}</div>
-                            </div>
-                            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <button class="btn btn-outline" style="padding: 8px 14px; font-size:1.1rem;" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, -1)">-</button>
-                                    <span id="cant-${id}" style="font-weight:bold; min-width:24px; text-align:center; font-size:1.1rem;">0</span>
-                                    <button class="btn" style="padding: 8px 14px; font-size:1.1rem;" onclick="modificarCantidad('${id}', '${nombre}', ${precio}, 1)">+</button>
-                                </div>
-                            </div>
+                const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
+
+                return `
+                    <div class="product-card">
+                        <div>
+                            <div class="product-img-container">${imgTag}</div>
+                            <div class="product-title">${nombre}</div>
+                            ${desc ? `<div class="product-desc">${desc}</div>` : ''}
+                            <div class="product-price">$${precio.toFixed(2)}</div>
                         </div>
-                    `;
-                }).join('');
+                        <div class="product-actions" id="actions-${id}">
+                            ${enCarrito === 0 ? 
+                                `<button class="btn-add" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1)">Agregar</button>` :
+                                `<div class="qty-control">
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, -1)">-</button>
+                                    <span class="qty-num">${enCarrito}</span>
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1)">+</button>
+                                 </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function cambiarCant(seccion, id, nombre, precio, cambio) {
+            if (carrito.tipo !== seccion) {
+                carrito.tipo = seccion;
+                carrito.items = {};
             }
-        }
 
-        function seleccionarCombo(id, nombre, precio) {
-            carrito.tipo = 'combo';
-            carrito.items = { [id]: { nombre, precio, cantidad: 1 } };
-            actualizarUI();
-        }
+            if (!carrito.items[id]) {
+                carrito.items[id] = { nombre, precio, cantidad: 0 };
+            }
 
-        function modificarCantidad(id, nombre, precio, cambio) {
-            if (carrito.tipo !== 'suelto') { carrito.tipo = 'suelto'; carrito.items = {}; }
-            if (!carrito.items[id]) carrito.items[id] = { nombre, precio, cantidad: 0 };
-            
             carrito.items[id].cantidad += cambio;
 
-            if (carrito.items[id].cantidad <= 0) delete carrito.items[id];
-            
-            const span = document.getElementById(`cant-${id}`);
-            if(span) span.innerText = carrito.items[id] ? carrito.items[id].cantidad : 0;
+            if (carrito.items[id].cantidad <= 0) {
+                delete carrito.items[id];
+            }
+
+            renderizarSeccion(seccion);
             actualizarUI();
         }
 
@@ -371,15 +416,59 @@
                 totalItems += carrito.items[id].cantidad;
                 totalPrice += carrito.items[id].precio * carrito.items[id].cantidad;
             }
+
             document.getElementById('cart-count').innerText = totalItems;
             document.getElementById('cart-total').innerText = `$${totalPrice.toFixed(2)}`;
 
             const btnPedir = document.getElementById('btn-pedir');
-            if ((carrito.tipo === 'suelto' && totalItems >= 5) || (carrito.tipo === 'combo' && totalItems > 0)) {
+            if ((carrito.tipo === 'armatubox' && totalItems >= 5) || (carrito.tipo !== 'armatubox' && totalItems > 0)) {
                 btnPedir.disabled = false;
             } else {
                 btnPedir.disabled = true;
             }
+        }
+
+        function filtrarProductos() {
+            const query = document.getElementById('buscador').value.toLowerCase();
+            const lista = datosGlobales[seccionActual] || [];
+            const container = document.getElementById(`grid-${seccionActual}`);
+
+            const filtrados = lista.filter(item => (item.NOMBRE || '').toLowerCase().includes(query) || (item.DESC || '').toLowerCase().includes(query));
+
+            if (filtrados.length === 0) {
+                container.innerHTML = '<p class="loading">No se encontraron productos.</p>';
+                return;
+            }
+
+            // Renderizado simplificado para búsqueda
+            container.innerHTML = filtrados.map((item, i) => {
+                const id = item.ID || `search_${i}`;
+                const nombre = item.NOMBRE || 'Producto';
+                const precio = parseFloat(item.PRECIO || 0);
+                const imgUrl = item.IMAGEN || item.FOTO || '';
+                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
+                const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
+
+                return `
+                    <div class="product-card">
+                        <div>
+                            <div class="product-img-container">${imgTag}</div>
+                            <div class="product-title">${nombre}</div>
+                            <div class="product-price">$${precio.toFixed(2)}</div>
+                        </div>
+                        <div class="product-actions">
+                            ${enCarrito === 0 ? 
+                                `<button class="btn-add" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1)">Agregar</button>` :
+                                `<div class="qty-control">
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, -1)">-</button>
+                                    <span class="qty-num">${enCarrito}</span>
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1)">+</button>
+                                 </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function abrirModalPedido() { document.getElementById('modalPedido').style.display = 'flex'; }
@@ -391,34 +480,31 @@
             const telefono = document.getElementById('cli-telefono').value.trim();
 
             if (!nombre || !direccion || !telefono) {
-                alert('Por favor completa todos los datos de entrega.');
+                alert('Por favor complete todos los campos de entrega.');
                 return;
             }
 
-            let mensaje = `*¡NUEVO PEDIDO!* 🛒\n\n`;
-            mensaje += `👤 *Cliente:* ${nombre}\n`;
-            mensaje += `📍 *Dirección:* ${direccion}\n`;
-            mensaje += `📞 *Teléfono:* ${telefono}\n\n`;
-            mensaje += `📦 *Detalle del pedido:*\n`;
+            let msg = `*¡NUEVO PEDIDO - COMBOS CAMAGÜEY!* 🛒\n\n`;
+            msg += `👤 *Cliente:* ${nombre}\n`;
+            msg += `📍 *Dirección:* ${direccion}\n`;
+            msg += `📞 *Teléfono:* ${telefono}\n\n`;
+            msg += `📦 *Detalle:* \n`;
 
             let total = 0;
-            for (let id in carrito.items) {
+            for(let id in carrito.items) {
                 let item = carrito.items[id];
-                let subtotal = item.precio * item.cantidad;
-                mensaje += `- ${item.nombre} x${item.cantidad} ($${subtotal.toFixed(2)})\n`;
-                total += subtotal;
+                let sub = item.precio * item.cantidad;
+                msg += `- ${item.nombre} x${item.cantidad} ($${sub.toFixed(2)})\n`;
+                total += sub;
             }
+            msg += `\n💰 *Total a pagar:* $${total.toFixed(2)}`;
 
-            mensaje += `\n💰 *Total a pagar:* $${total.toFixed(2)}`;
-
-            const numeroWhatsApp = "+5350306150";
-            const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
-            
+            const url = `https://wa.me/+5350306150?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
             cerrarModalPedido();
         }
 
-        cargarCatalogos();
+        cargarDatos();
     </script>
 </body>
 </html>
