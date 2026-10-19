@@ -26,14 +26,15 @@
             background-color: #0f172a; 
             color: #fff; 
             padding-bottom: 100px; 
+            overflow-x: hidden;
         }
 
-        /* ESTILO AMAZON: HEADER CON FONDO BANNER.PNG Y BUSCADOR */
+        /* HEADER ESTILO AMAZON CON FONDO BANNER.PNG, BUSCADOR Y CARRITO SUPERIOR */
         header {
             position: sticky; top: 0; z-index: 100;
-            background: linear-gradient(180deg, rgba(19, 25, 33, 0.6) 0%, rgba(19, 25, 33, 0.85) 100%), 
+            background: linear-gradient(180deg, rgba(19, 25, 33, 0.65) 0%, rgba(19, 25, 33, 0.9) 100%), 
                         url('banner.png') center/cover no-repeat;
-            padding: 14px 16px;
+            padding: 12px 16px;
             border-bottom: 2px solid #febd69;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             backdrop-filter: blur(2px);
@@ -43,8 +44,27 @@
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
         }
         .header-logo { 
-            font-size: 1.25rem; font-weight: 800; color: #febd69; text-decoration: none;
+            font-size: 1.2rem; font-weight: 800; color: #febd69; text-decoration: none;
             text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        }
+
+        /* CARRITO SUPERIOR DE DESTINO */
+        .cart-top-btn {
+            position: relative; background: #232f3e; border: 1px solid #febd69; color: #febd69;
+            padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 1.1rem;
+            display: flex; align-items: center; gap: 6px; transition: transform 0.2s;
+        }
+        .cart-top-btn.bounce { animation: cartShake 0.4s ease-in-out; }
+        .cart-badge {
+            background: #00e676; color: #000; border-radius: 50%; padding: 2px 7px;
+            font-size: 0.75rem; font-weight: 800;
+        }
+
+        @keyframes cartShake {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.25) rotate(-10deg); }
+            60% { transform: scale(1.25) rotate(10deg); }
+            100% { transform: scale(1); }
         }
 
         .search-bar-container {
@@ -60,7 +80,7 @@
             background: #febd69; border: none; padding: 0 16px; cursor: pointer; font-size: 1.1rem;
         }
 
-        /* CATEGORÍAS / PESTAÑAS TIPO AMAZON (DESLIZABLES) */
+        /* CATEGORÍAS / PESTAÑAS TIPO AMAZON */
         .categories-nav {
             display: flex; background: #232f3e; overflow-x: auto; white-space: nowrap;
             padding: 0 8px; border-bottom: 1px solid #374151; scrollbar-width: none;
@@ -80,7 +100,7 @@
         .section { display: none; }
         .section.active { display: block; }
 
-        /* BANNER DE ALERTA (MÍNIMO 5) */
+        /* BANNER DE ALERTA */
         .alert-banner {
             background: rgba(254, 189, 105, 0.15);
             border: 1px solid #febd69;
@@ -95,7 +115,7 @@
             gap: 10px;
         }
 
-        /* CUADRÍCULA DE PRODUCTOS (GRID ESTILO AMAZON) */
+        /* CUADRÍCULA DE PRODUCTOS */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -110,10 +130,11 @@
             background: #1e293b; border-radius: 12px; padding: 12px;
             border: 1px solid #334155; display: flex; flex-direction: column;
             justify-content: space-between; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
         }
 
         .product-img-container {
-            width: 100%; height: 140px; border-radius: 8px; overflow: hidden;
+            width: 100%; height: 130px; border-radius: 8px; overflow: hidden;
             background: #0f172a; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
         }
         .product-img {
@@ -121,7 +142,7 @@
         }
 
         .product-title {
-            font-size: 0.9rem; font-weight: 600; color: #f8fafc; margin-bottom: 4px;
+            font-size: 0.88rem; font-weight: 600; color: #f8fafc; margin-bottom: 4px;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
             height: 2.6em; line-height: 1.3;
         }
@@ -131,32 +152,47 @@
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
 
-        /* PRECIO DEBAJO DE LA IMAGEN */
         .product-price {
-            font-size: 1.1rem; font-weight: 800; color: #00e676; margin-bottom: 10px;
+            font-size: 1.1rem; font-weight: 800; color: #00e676; margin-bottom: 8px;
         }
 
-        /* CONTROLES DE CANTIDAD Y BOTONES */
+        /* CONTROLES CON CANTIDAD Y CARRITO INTEGRADO DEBAJO DE CADA PRODUCTO */
         .product-actions { display: flex; flex-direction: column; gap: 6px; }
+
+        .qty-cart-control {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #0f172a; border-radius: 8px; border: 1px solid #334155; padding: 3px;
+        }
         
-        .btn-add {
-            background: #febd69; color: #111; border: none; padding: 8px;
-            border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+        .btn-qty-action {
+            background: #febd69; color: #111; border: none; width: 32px; height: 32px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+        }
+        .btn-qty-action:active { transform: scale(0.92); }
+
+        .qty-num-display {
+            font-weight: 800; font-size: 0.95rem; color: #fff; min-width: 24px; text-align: center;
+        }
+
+        .btn-add-cart-icon {
+            background: #febd69; color: #111; border: none; padding: 8px 10px;
+            border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
             width: 100%; transition: background 0.2s;
         }
-        .btn-add:hover { background: #f3a847; }
+        .btn-add-cart-icon:active { transform: scale(0.95); }
 
-        .qty-control {
-            display: flex; align-items: center; justify-content: space-between;
-            background: #0f172a; border-radius: 6px; border: 1px solid #334155; padding: 2px;
+        /* ELEMENTO ANIMADO VOLADOR */
+        .flying-item {
+            position: fixed; z-index: 9999; pointer-events: none;
+            width: 45px; height: 45px; border-radius: 50%;
+            object-fit: cover; border: 2px solid #febd69;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            transition: all 0.7s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
-        .qty-btn {
-            background: #334155; color: #fff; border: none; width: 28px; height: 28px;
-            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;
-        }
-        .qty-num { font-weight: bold; font-size: 0.95rem; color: #febd69; }
 
-        /* BARRA INFERIOR DE CARRITO */
+        /* BARRA INFERIOR DE CARRITO Y PEDIDO */
         .cart-bar {
             position: fixed; bottom: 0; left: 0; width: 100%; background: #131921;
             padding: 12px 20px; border-top: 2px solid #febd69; display: flex;
@@ -198,10 +234,13 @@
 </head>
 <body>
 
-    <!-- HEADER CON IMAGEN BANNER.PNG Y BUSCADOR -->
+    <!-- HEADER CON IMAGEN BANNER.PNG, BUSCADOR Y CARRITO SUPERIOR ANIMADO -->
     <header>
         <div class="header-top">
             <a href="#" class="header-logo">📦 Combos Camagüey</a>
+            <div class="cart-top-btn" id="cart-target" onclick="abrirModalPedido()">
+                🛒 <span class="cart-badge" id="cart-top-count">0</span>
+            </div>
         </div>
         <div class="search-bar-container">
             <input type="text" id="buscador" class="search-input" placeholder="Buscar productos, combos, medicinas..." oninput="filtrarProductos()">
@@ -255,7 +294,7 @@
         </div>
     </div>
 
-    <!-- CARRITO FLOTANTE -->
+    <!-- CARRITO FLOTANTE INFERIOR -->
     <div class="cart-bar">
         <div class="cart-info">
             <div>Items: <span id="cart-count">0</span></div>
@@ -365,7 +404,7 @@
                 const desc = rawDesc.replaceAll(',', '\n').replaceAll('|', '\n');
                 const precio = parseFloat(item.PRECIO || 0);
                 const imgUrl = item.IMAGEN || item.FOTO || '';
-                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
+                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
                 const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
 
@@ -377,13 +416,15 @@
                             ${desc ? `<div class="product-desc">${desc}</div>` : ''}
                             <div class="product-price">$${precio.toFixed(2)}</div>
                         </div>
-                        <div class="product-actions" id="actions-${id}">
+                        <div class="product-actions">
                             ${enCarrito === 0 ? 
-                                `<button class="btn-add" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1)">Agregar</button>` :
-                                `<div class="qty-control">
-                                    <button class="qty-btn" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, -1)">-</button>
-                                    <span class="qty-num">${enCarrito}</span>
-                                    <button class="qty-btn" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1)">+</button>
+                                `<button class="btn-add-cart-icon" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1, event)">
+                                    🛒 Agregar
+                                 </button>` :
+                                `<div class="qty-cart-control">
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, -1, event)">-</button>
+                                    <span class="qty-num-display">🛒 ${enCarrito}</span>
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1, event)">+</button>
                                  </div>`
                             }
                         </div>
@@ -392,7 +433,7 @@
             }).join('');
         }
 
-        function cambiarCant(seccion, id, nombre, precio, cambio) {
+        function cambiarCant(seccion, id, nombre, precio, cambio, event) {
             if (carrito.tipo !== seccion) {
                 carrito.tipo = seccion;
                 carrito.items = {};
@@ -404,12 +445,67 @@
 
             carrito.items[id].cantidad += cambio;
 
+            if (cambio > 0 && event) {
+                animarVueloProducto(id, event);
+            }
+
             if (carrito.items[id].cantidad <= 0) {
                 delete carrito.items[id];
             }
 
             renderizarSeccion(seccion);
             actualizarUI();
+        }
+
+        /* FUNCIÓN QUE ANIMA EL VUELO DEL PRODUCTO AL CARRITO DE ARRIBA */
+        function animarVueloProducto(id, event) {
+            const originImg = document.getElementById(`img-${id}`);
+            const cartTarget = document.getElementById('cart-target');
+
+            if (!cartTarget) return;
+
+            // Obtener posiciones
+            let startX, startY;
+            if (originImg && originImg.offsetParent !== null) {
+                const rect = originImg.getBoundingClientRect();
+                startX = rect.left + rect.width / 2;
+                startY = rect.top + rect.height / 2;
+            } else if (event) {
+                startX = event.clientX;
+                startY = event.clientY;
+            } else {
+                return;
+            }
+
+            const targetRect = cartTarget.getBoundingClientRect();
+            const targetX = targetRect.left + targetRect.width / 2;
+            const targetY = targetRect.top + targetRect.height / 2;
+
+            // Crear elemento volador
+            const flyer = document.createElement('img');
+            flyer.src = originImg ? originImg.src : 'icon-192.png';
+            flyer.className = 'flying-item';
+            flyer.style.left = `${startX - 22}px`;
+            flyer.style.top = `${startY - 22}px`;
+
+            document.body.appendChild(flyer);
+
+            // Iniciar movimiento
+            requestAnimationFrame(() => {
+                flyer.style.left = `${targetX - 10}px`;
+                flyer.style.top = `${targetY - 10}px`;
+                flyer.style.width = '18px';
+                flyer.style.height = '18px';
+                flyer.style.opacity = '0.4';
+                flyer.style.transform = 'scale(0.3) rotate(360deg)';
+            });
+
+            // Al terminar la animación
+            setTimeout(() => {
+                flyer.remove();
+                cartTarget.classList.add('bounce');
+                setTimeout(() => cartTarget.classList.remove('bounce'), 400);
+            }, 700);
         }
 
         function actualizarUI() {
@@ -420,6 +516,7 @@
             }
 
             document.getElementById('cart-count').innerText = totalItems;
+            document.getElementById('cart-top-count').innerText = totalItems;
             document.getElementById('cart-total').innerText = `$${totalPrice.toFixed(2)}`;
 
             const btnPedir = document.getElementById('btn-pedir');
@@ -447,7 +544,7 @@
                 const nombre = item.NOMBRE || 'Producto';
                 const precio = parseFloat(item.PRECIO || 0);
                 const imgUrl = item.IMAGEN || item.FOTO || '';
-                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
+                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
                 const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
 
                 return `
@@ -459,11 +556,13 @@
                         </div>
                         <div class="product-actions">
                             ${enCarrito === 0 ? 
-                                `<button class="btn-add" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1)">Agregar</button>` :
-                                `<div class="qty-control">
-                                    <button class="qty-btn" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, -1)">-</button>
-                                    <span class="qty-num">${enCarrito}</span>
-                                    <button class="qty-btn" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1)">+</button>
+                                `<button class="btn-add-cart-icon" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1, event)">
+                                    🛒 Agregar
+                                 </button>` :
+                                `<div class="qty-cart-control">
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, -1, event)">-</button>
+                                    <span class="qty-num-display">🛒 ${enCarrito}</span>
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1, event)">+</button>
                                  </div>`
                             }
                         </div>
