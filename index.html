@@ -29,7 +29,7 @@
             overflow-x: hidden;
         }
 
-        /* HEADER ESTILO AMAZON CON BUSCADOR Y CARRITO SUPERIOR */
+        /* HEADER ESTILO AMAZON CON BUSCADOR Y CARRITO SUPERIOR PRINCIPAL */
         header {
             position: sticky; top: 0; z-index: 100;
             background: linear-gradient(180deg, rgba(19, 25, 33, 0.75) 0%, rgba(19, 25, 33, 0.95) 100%), 
@@ -48,7 +48,7 @@
             text-shadow: 0 2px 6px rgba(0,0,0,0.9);
         }
 
-        /* BOTÓN DE CARRITO EN EL HEADER */
+        /* BOTÓN DE CARRITO PRINCIPAL EN EL HEADER */
         .cart-top-btn {
             position: relative; background: #232f3e; border: 2px solid #febd69; color: #febd69;
             padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 1.05rem;
@@ -191,7 +191,7 @@
         }
         .btn-add-cart-icon:active { transform: scale(0.95); }
 
-        /* ANIMACIÓN LENTA DE VUELO DE PRODUCTO (1.2s) */
+        /* ANIMACIÓN LENTA DE VUELO DE PRODUCTO */
         .flying-item {
             position: fixed; z-index: 9999; pointer-events: none;
             width: 50px; height: 50px; border-radius: 50%;
@@ -200,12 +200,12 @@
             transition: all 1.2s cubic-bezier(0.25, 1, 0.3, 1);
         }
 
-        /* BARRA FLOTANTE EXCLUSIVA PARA ARMA TU COMBO */
+        /* BARRA FLOTANTE INDEPENDIENTE DE "ARMA TU COMBO" */
         .combo-floating-bar {
             position: fixed; bottom: 0; left: 0; width: 100%; background: #131921;
-            padding: 12px 20px; border-top: 2px solid #febd69; display: none;
+            padding: 12px 16px; border-top: 2px solid #febd69; display: none;
             justify-content: space-between; align-items: center; z-index: 200;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
         .combo-floating-bar.active { display: flex; }
 
@@ -213,16 +213,16 @@
         .combo-bar-info strong { color: #febd69; font-size: 1rem; }
 
         .btn-combo-check {
-            background: #334155; color: #94a3b8; border: none; padding: 10px 18px;
-            border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: not-allowed;
+            background: #334155; color: #94a3b8; border: none; padding: 10px 14px;
+            border-radius: 8px; font-weight: 800; font-size: 0.85rem; cursor: not-allowed;
             transition: all 0.3s ease;
         }
         .btn-combo-check.ready {
             background: #00e676 !important; color: #000 !important; cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 230, 118, 0.6);
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.8);
         }
 
-        /* MODAL / CARRITO COMPLETO */
+        /* MODAL / CARRITO PRINCIPAL */
         .modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none;
             justify-content: center; align-items: center; z-index: 300; padding: 20px;
@@ -297,7 +297,7 @@
         <div id="armatubox" class="section">
             <div class="alert-banner">
                 <span>⚠️</span>
-                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos sueltos para esta sección.</span>
+                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos para enviar este combo al carrito principal.</span>
             </div>
             <div id="grid-armatubox" class="products-grid"><div class="loading">Cargando artículos...</div></div>
         </div>
@@ -306,21 +306,23 @@
         <div id="otros" class="section"><div id="grid-otros" class="products-grid"><div class="loading">Cargando otros...</div></div></div>
     </div>
 
-    <!-- BARRA FLOTANTE PARA "ARMA TU COMBO" -->
+    <!-- BARRA FLOTANTE INDEPENDIENTE "ARMA TU COMBO" -->
     <div class="combo-floating-bar" id="combo-bar">
         <div class="combo-bar-info">
-            🛠️ Mínimo combo: <strong id="combo-count-display">0 / 5</strong>
+            🛠️ Borrador combo: <strong id="combo-count-display">0 / 5</strong>
         </div>
-        <button class="btn-combo-check" id="btn-combo-finish" onclick="abrirModalPedido()"> Ver Carrito 🛒</button>
+        <button class="btn-combo-check" id="btn-combo-finish" onclick="transferirComboAlCarritoPrincipal()">
+            Añadir al Carrito 📥
+        </button>
     </div>
 
-    <!-- MODAL DE PEDIDO Y WHATSAPP -->
+    <!-- MODAL DE PEDIDO COMPLETO -->
     <div class="modal" id="modalPedido">
         <div class="modal-content">
             <h2>🛒 Tu Pedido Total <span id="modal-total-header" style="color:#00e676;">$0.00</span></h2>
             
             <div class="cart-summary-list" id="cart-summary-items">
-                <!-- Lista detallada del pedido -->
+                <!-- Lista de items consolidados -->
             </div>
 
             <div class="form-group"><label>Nombre y Apellidos</label><input type="text" id="cli-nombre" class="form-control" placeholder="Ej: Juan Pérez"></div>
@@ -347,8 +349,11 @@
         let datosGlobales = { electrodomesticos: [], medicamentos: [], combos: [], armatubox: [], miscelaneas: [], otros: [] };
         let seccionActual = 'electrodomesticos';
         
-        // CARRITO UNIFICADO (Ya no se reinicia al cambiar de sección)
+        // 1. CARRITO PRINCIPAL (Pestañas Libres)
         let carritoGlobal = {};
+
+        // 2. CARRITO TEMPORAL INDEPENDIENTE (Solo para "Arma Tu Combo")
+        let carritoComboBorrador = {};
 
         function parseCSV(text) {
             const lines = text.trim().split('\n');
@@ -397,7 +402,6 @@
             
             seccionActual = seccionId;
 
-            // Mostrar/Ocultar la barra flotante de "Arma tu combo"
             const comboBar = document.getElementById('combo-bar');
             if (seccionActual === 'armatubox') {
                 comboBar.classList.add('active');
@@ -427,7 +431,13 @@
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
-                const enCarrito = carritoGlobal[id] ? carritoGlobal[id].cantidad : 0;
+                // Determinar qué carrito consultar
+                let enCarrito = 0;
+                if (seccionId === 'armatubox') {
+                    enCarrito = carritoComboBorrador[id] ? carritoComboBorrador[id].cantidad : 0;
+                } else {
+                    enCarrito = carritoGlobal[id] ? carritoGlobal[id].cantidad : 0;
+                }
 
                 return `
                     <div class="product-card">
@@ -455,30 +465,46 @@
         }
 
         function cambiarCant(seccion, id, nombre, precio, cambio, event) {
-            if (!carritoGlobal[id]) {
-                carritoGlobal[id] = { nombre, precio, cantidad: 0, seccion };
-            }
+            if (seccion === 'armatubox') {
+                // MANEJO DEL BORRADOR INDEPENDIENTE
+                if (!carritoComboBorrador[id]) {
+                    carritoComboBorrador[id] = { nombre, precio, cantidad: 0 };
+                }
+                carritoComboBorrador[id].cantidad += cambio;
 
-            carritoGlobal[id].cantidad += cambio;
+                if (cambio > 0 && event) {
+                    animarVueloHaciaTarget(id, 'btn-combo-finish', event);
+                }
 
-            if (cambio > 0 && event) {
-                animarVueloLento(id, event);
-            }
+                if (carritoComboBorrador[id].cantidad <= 0) {
+                    delete carritoComboBorrador[id];
+                }
+            } else {
+                // MANEJO DEL CARRITO GLOBAL
+                if (!carritoGlobal[id]) {
+                    carritoGlobal[id] = { nombre, precio, cantidad: 0 };
+                }
+                carritoGlobal[id].cantidad += cambio;
 
-            if (carritoGlobal[id].cantidad <= 0) {
-                delete carritoGlobal[id];
+                if (cambio > 0 && event) {
+                    animarVueloHaciaTarget(id, 'cart-target', event);
+                }
+
+                if (carritoGlobal[id].cantidad <= 0) {
+                    delete carritoGlobal[id];
+                }
             }
 
             renderizarSeccion(seccion);
             actualizarUI();
         }
 
-        /* ANIMACIÓN DE VUELO DE PRODUCTO AL CARRITO (1.2s) */
-        function animarVueloLento(id, event) {
+        /* ANIMACIÓN DE VUELO DE PRODUCTO HACIA CUALQUIER CARRITO */
+        function animarVueloHaciaTarget(id, targetId, event) {
             const originImg = document.getElementById(`img-${id}`);
-            const cartTarget = document.getElementById('cart-target');
+            const targetEl = document.getElementById(targetId);
 
-            if (!cartTarget) return;
+            if (!targetEl) return;
 
             let startX, startY;
             if (originImg && originImg.offsetParent !== null) {
@@ -490,7 +516,7 @@
                 startY = event.clientY;
             } else { return; }
 
-            const targetRect = cartTarget.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
             const targetX = targetRect.left + targetRect.width / 2;
             const targetY = targetRect.top + targetRect.height / 2;
 
@@ -513,22 +539,54 @@
 
             setTimeout(() => {
                 flyer.remove();
-                cartTarget.classList.add('bounce');
-                setTimeout(() => cartTarget.classList.remove('bounce'), 500);
+                targetEl.classList.add('bounce');
+                setTimeout(() => targetEl.classList.remove('bounce'), 500);
             }, 1200);
         }
 
-        function actualizarUI() {
-            let totalItems = 0, totalPrice = 0, itemsArmaTuCombo = 0;
+        /* TRANSFERIR EL COMBO COMPLETO AL CARRITO PRINCIPAL CUANDO ALCANZA 5 */
+        function transferirComboAlCarritoPrincipal() {
+            let totalItemsBorrador = 0;
+            for (let id in carritoComboBorrador) {
+                totalItemsBorrador += carritoComboBorrador[id].cantidad;
+            }
 
-            for (let id in carritoGlobal) {
-                const item = carritoGlobal[id];
-                totalItems += item.cantidad;
-                totalPrice += item.precio * item.cantidad;
+            if (totalItemsBorrador < 5) return;
 
-                if (item.seccion === 'armatubox') {
-                    itemsArmaTuCombo += item.cantidad;
+            // Pasar productos del borrador al carrito global
+            for (let id in carritoComboBorrador) {
+                const item = carritoComboBorrador[id];
+                if (!carritoGlobal[id]) {
+                    carritoGlobal[id] = { nombre: `${item.nombre} (Combo)`, precio: item.precio, cantidad: 0 };
                 }
+                carritoGlobal[id].cantidad += item.cantidad;
+            }
+
+            // Vaciar borrador de Arma tu combo
+            carritoComboBorrador = {};
+
+            // Efecto visual en el carrito principal arriba
+            const cartBtn = document.getElementById('cart-target');
+            cartBtn.classList.add('bounce');
+            setTimeout(() => cartBtn.classList.remove('bounce'), 500);
+
+            renderizarSeccion('armatubox');
+            actualizarUI();
+            alert('¡Tu Combo personalizado ha sido añadido con éxito al Carrito Principal! 🛒');
+        }
+
+        function actualizarUI() {
+            // Contar carrito principal
+            let totalItemsGlobal = 0, totalPriceGlobal = 0;
+            for (let id in carritoGlobal) {
+                totalItemsGlobal += carritoGlobal[id].cantidad;
+                totalPriceGlobal += carritoGlobal[id].precio * carritoGlobal[id].cantidad;
+            }
+
+            // Contar borrador de Arma tu combo
+            let itemsBorrador = 0;
+            for (let id in carritoComboBorrador) {
+                itemsBorrador += carritoComboBorrador[id].cantidad;
             }
 
             const cartBtn = document.getElementById('cart-target');
@@ -537,25 +595,9 @@
             const comboDisplay = document.getElementById('combo-count-display');
             const comboFinishBtn = document.getElementById('btn-combo-finish');
 
-            cartBadge.innerText = totalItems;
-
-            // Validación de la barra flotante "Arma tu Combo"
-            comboDisplay.innerText = `${itemsArmaTuCombo} / 5`;
-            if (itemsArmaTuCombo >= 5) {
-                comboFinishBtn.classList.add('ready');
-                comboFinishBtn.innerText = "¡Mínimo listo! Ver Carrito 🚀";
-            } else {
-                comboFinishBtn.classList.remove('ready');
-                comboFinishBtn.innerText = `Faltan ${5 - itemsArmaTuCombo} más`;
-            }
-
-            // Habilitar el envío por WhatsApp si cumple condiciones
-            // (Si usó "Arma tu combo" debe tener al menos 5, o si compró de otras secciones)
-            let puedePedir = false;
-            if (itemsArmaTuCombo > 0 && itemsArmaTuCombo >= 5) puedePedir = true;
-            if (itemsArmaTuCombo === 0 && totalItems > 0) puedePedir = true;
-
-            if (puedePedir) {
+            // Carrito superior
+            cartBadge.innerText = totalItemsGlobal;
+            if (totalItemsGlobal > 0) {
                 cartBtn.classList.add('glow-active');
                 btnModalSend.disabled = false;
             } else {
@@ -563,7 +605,17 @@
                 btnModalSend.disabled = true;
             }
 
-            document.getElementById('modal-total-header').innerText = `$${totalPrice.toFixed(2)}`;
+            // Barra flotante "Arma Tu Combo"
+            comboDisplay.innerText = `${itemsBorrador} / 5`;
+            if (itemsBorrador >= 5) {
+                comboFinishBtn.classList.add('ready');
+                comboFinishBtn.innerText = "Añadir al Carrito Principal 📥";
+            } else {
+                comboFinishBtn.classList.remove('ready');
+                comboFinishBtn.innerText = `Faltan ${5 - itemsBorrador} art.`;
+            }
+
+            document.getElementById('modal-total-header').innerText = `$${totalPriceGlobal.toFixed(2)}`;
         }
 
         function abrirModalPedido() {
@@ -583,7 +635,7 @@
             }
 
             if (html === '') {
-                html = '<p style="text-align:center; color:#94a3b8;">Tu carrito está vacío.</p>';
+                html = '<p style="text-align:center; color:#94a3b8;">Tu carrito principal está vacío.</p>';
             }
 
             summaryContainer.innerHTML = html;
@@ -640,7 +692,13 @@
                 const precio = parseFloat(item.PRECIO || 0);
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
-                const enCarrito = carritoGlobal[id] ? carritoGlobal[id].cantidad : 0;
+
+                let enCarrito = 0;
+                if (seccionActual === 'armatubox') {
+                    enCarrito = carritoComboBorrador[id] ? carritoComboBorrador[id].cantidad : 0;
+                } else {
+                    enCarrito = carritoGlobal[id] ? carritoGlobal[id].cantidad : 0;
+                }
 
                 return `
                     <div class="product-card">
