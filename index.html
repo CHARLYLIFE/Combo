@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Combos Camagüey - Tienda Online</title>
+    <title>CALYOR - Combos & Tienda Online</title>
 
     <!-- Enlaces y metadatos PWA -->
     <link rel="manifest" href="manifest.json">
@@ -20,6 +20,8 @@
     </script>
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&display=swap');
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         
         body { 
@@ -29,33 +31,47 @@
             overflow-x: hidden;
         }
 
-        /* HEADER ESTILO AMAZON CON BUSCADOR Y CARRITO SUPERIOR PRINCIPAL */
+        /* HEADER CON LOGO Y ESTILO ELEGANTE CALYOR */
         header {
             position: sticky; top: 0; z-index: 100;
-            background: linear-gradient(180deg, rgba(19, 25, 33, 0.75) 0%, rgba(19, 25, 33, 0.95) 100%), 
+            background: linear-gradient(180deg, rgba(10, 15, 26, 0.85) 0%, rgba(15, 23, 42, 0.98) 100%), 
                         url('banner.png') center/cover no-repeat;
-            padding: 12px 16px;
-            border-bottom: 2px solid #febd69;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            backdrop-filter: blur(3px);
+            padding: 10px 14px;
+            border-bottom: 2px solid #d4af37;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
         }
         
         .header-top {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
         }
-        .header-logo { 
-            font-size: 1.2rem; font-weight: 800; color: #febd69; text-decoration: none;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+
+        .brand-container {
+            display: flex; align-items: center; gap: 10px; text-decoration: none;
         }
 
-        /* BOTÓN DE CARRITO PRINCIPAL EN EL HEADER */
+        .header-logo-img {
+            height: 38px; width: auto; object-fit: contain; border-radius: 4px;
+        }
+
+        .header-title { 
+            font-family: 'Cinzel', serif;
+            font-size: 1.45rem; font-weight: 900; 
+            background: linear-gradient(180deg, #fff3a1 0%, #d4af37 60%, #aa7c11 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1.5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        /* BOTÓN DE CARRITO SUPERIOR */
         .cart-top-btn {
-            position: relative; background: #232f3e; border: 2px solid #febd69; color: #febd69;
-            padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 1.05rem;
-            display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+            position: relative; background: #1e293b; border: 2px solid #d4af37; color: #d4af37;
+            padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 1rem;
+            display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;
         }
         .cart-badge {
-            background: #febd69; color: #000; border-radius: 12px; padding: 2px 8px;
+            background: #d4af37; color: #000; border-radius: 12px; padding: 2px 7px;
             font-size: 0.8rem; font-weight: 800;
         }
 
@@ -88,60 +104,54 @@
             border: 2px solid transparent; transition: border-color 0.2s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
-        .search-bar-container:focus-within { border-color: #febd69; }
+        .search-bar-container:focus-within { border-color: #d4af37; }
         .search-input {
             flex: 1; padding: 10px 14px; border: none; outline: none; font-size: 0.95rem; color: #111;
         }
         .search-btn {
-            background: #febd69; border: none; padding: 0 16px; cursor: pointer; font-size: 1.1rem;
+            background: #d4af37; border: none; padding: 0 16px; cursor: pointer; font-size: 1.1rem;
         }
 
         /* CATEGORÍAS DESLIZABLES */
         .categories-nav {
-            display: flex; background: #232f3e; overflow-x: auto; white-space: nowrap;
-            padding: 0 8px; border-bottom: 1px solid #374151; scrollbar-width: none;
+            display: flex; background: #0f172a; overflow-x: auto; white-space: nowrap;
+            padding: 0 8px; border-bottom: 1px solid #334155; scrollbar-width: none;
         }
         .categories-nav::-webkit-scrollbar { display: none; }
         
         .cat-btn {
-            padding: 12px 16px; background: none; border: none; color: #cbd5e1;
+            padding: 12px 16px; background: none; border: none; color: #94a3b8;
             font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
             border-bottom: 3px solid transparent;
         }
         .cat-btn.active {
-            color: #febd69; border-bottom: 3px solid #febd69; background: rgba(254, 189, 105, 0.08);
+            color: #d4af37; border-bottom: 3px solid #d4af37; background: rgba(212, 175, 55, 0.08);
         }
 
         .container { padding: 14px 10px; width: 100%; max-width: 1200px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
 
-        /* BANNER DE ADVERTENCIA MÍNIMO */
         .alert-banner {
-            background: rgba(254, 189, 105, 0.15);
-            border: 1px solid #febd69;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid #d4af37;
             color: #fef08a;
             padding: 12px 16px;
             border-radius: 8px;
             font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
         }
 
         /* CUADRÍCULA DE PRODUCTOS */
         .products-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
         }
         @media (min-width: 768px) {
             .products-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
         }
 
-        /* TARJETAS DE PRODUCTO */
         .product-card {
             background: #1e293b; border-radius: 12px; padding: 12px;
             border: 1px solid #334155; display: flex; flex-direction: column;
@@ -167,7 +177,7 @@
 
         .product-price { font-size: 1.1rem; font-weight: 800; color: #00e676; margin-bottom: 8px; }
 
-        /* CONTROLES DE CANTIDAD EN LA TARJETA */
+        /* CONTROLES DE CANTIDAD */
         .product-actions { display: flex; flex-direction: column; gap: 6px; }
 
         .qty-cart-control {
@@ -176,7 +186,7 @@
         }
         
         .btn-qty-action {
-            background: #febd69; color: #111; border: none; width: 32px; height: 32px;
+            background: #d4af37; color: #000; border: none; width: 32px; height: 32px;
             border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
             display: flex; align-items: center; justify-content: center;
         }
@@ -185,32 +195,32 @@
         .qty-num-display { font-weight: 800; font-size: 0.95rem; color: #fff; }
 
         .btn-add-cart-icon {
-            background: #febd69; color: #111; border: none; padding: 8px 10px;
+            background: #d4af37; color: #000; border: none; padding: 8px 10px;
             border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
         }
         .btn-add-cart-icon:active { transform: scale(0.95); }
 
-        /* ANIMACIÓN LENTA DE VUELO DE PRODUCTO */
+        /* ANIMACIÓN DE VUELO */
         .flying-item {
             position: fixed; z-index: 9999; pointer-events: none;
             width: 50px; height: 50px; border-radius: 50%;
-            object-fit: cover; border: 2px solid #febd69;
+            object-fit: cover; border: 2px solid #d4af37;
             box-shadow: 0 6px 16px rgba(0,0,0,0.6);
             transition: all 1.2s cubic-bezier(0.25, 1, 0.3, 1);
         }
 
-        /* BARRA FLOTANTE INDEPENDIENTE DE "ARMA TU COMBO" */
+        /* BARRA FLOTANTE PARA "ARMA TU COMBO" */
         .combo-floating-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: #131921;
-            padding: 12px 16px; border-top: 2px solid #febd69; display: none;
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a;
+            padding: 12px 16px; border-top: 2px solid #d4af37; display: none;
             justify-content: space-between; align-items: center; z-index: 200;
             box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
         .combo-floating-bar.active { display: flex; }
 
         .combo-bar-info { font-size: 0.85rem; color: #94a3b8; }
-        .combo-bar-info strong { color: #febd69; font-size: 1rem; }
+        .combo-bar-info strong { color: #d4af37; font-size: 1rem; }
 
         .btn-combo-check {
             background: #334155; color: #94a3b8; border: none; padding: 10px 14px;
@@ -222,7 +232,7 @@
             box-shadow: 0 0 15px rgba(0, 230, 118, 0.8);
         }
 
-        /* MODAL / CARRITO PRINCIPAL */
+        /* MODAL CARRITO CON EDICIÓN DE ÍTEMS */
         .modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none;
             justify-content: center; align-items: center; z-index: 300; padding: 20px;
@@ -231,13 +241,28 @@
             background: #1e293b; width: 100%; max-width: 440px; padding: 22px;
             border-radius: 16px; border: 1px solid #334155; max-height: 90vh; overflow-y: auto;
         }
-        .modal-content h2 { font-size: 1.2rem; margin-bottom: 12px; color: #febd69; display: flex; justify-content: space-between; }
+        .modal-content h2 { font-size: 1.2rem; margin-bottom: 12px; color: #d4af37; display: flex; justify-content: space-between; }
         
         .cart-summary-list {
             background: #0f172a; border-radius: 8px; padding: 10px; margin-bottom: 15px;
-            max-height: 200px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155;
+            max-height: 220px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155;
         }
-        .cart-item-row { display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #334155; }
+        
+        .cart-item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #334155;
+        }
+        .cart-item-details { flex: 1; padding-right: 8px; }
+        .cart-item-controls { display: flex; align-items: center; gap: 6px; }
+        .btn-modal-qty {
+            background: #334155; color: #fff; border: none; width: 24px; height: 24px;
+            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
+        }
+        .btn-modal-delete {
+            background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444;
+            width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center; margin-left: 4px;
+        }
 
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
@@ -263,10 +288,13 @@
 </head>
 <body>
 
-    <!-- HEADER ESTILO AMAZON -->
+    <!-- HEADER CON LOGO Y MARCA CALYOR -->
     <header>
         <div class="header-top">
-            <a href="#" class="header-logo">📦 Combos Camagüey</a>
+            <a href="#" class="brand-container">
+                <img src="logo.png" alt="CALYOR Logo" class="header-logo-img" onerror="this.style.display='none'">
+                <span class="header-title">CALYOR</span>
+            </a>
             <div class="cart-top-btn" id="cart-target" onclick="abrirModalPedido()">
                 🛒 <span id="cart-top-label">Carrito</span>
                 <span class="cart-badge" id="cart-top-count">0</span>
@@ -289,7 +317,7 @@
     </nav>
 
     <div class="container">
-        <!-- SECCIONES DE CATALOGO -->
+        <!-- SECCIONES DE CATÁLOGO -->
         <div id="electrodomesticos" class="section active"><div id="grid-electrodomesticos" class="products-grid"><div class="loading">Cargando electrodomésticos...</div></div></div>
         <div id="medicamentos" class="section"><div id="grid-medicamentos" class="products-grid"><div class="loading">Cargando medicamentos...</div></div></div>
         <div id="combos" class="section"><div id="grid-combos" class="products-grid"><div class="loading">Cargando combos...</div></div></div>
@@ -297,7 +325,7 @@
         <div id="armatubox" class="section">
             <div class="alert-banner">
                 <span>⚠️</span>
-                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos para enviar este combo al carrito principal.</span>
+                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos sueltos para enviarlos al carrito principal.</span>
             </div>
             <div id="grid-armatubox" class="products-grid"><div class="loading">Cargando artículos...</div></div>
         </div>
@@ -306,7 +334,7 @@
         <div id="otros" class="section"><div id="grid-otros" class="products-grid"><div class="loading">Cargando otros...</div></div></div>
     </div>
 
-    <!-- BARRA FLOTANTE INDEPENDIENTE "ARMA TU COMBO" -->
+    <!-- BARRA FLOTANTE PARA "ARMA TU COMBO" -->
     <div class="combo-floating-bar" id="combo-bar">
         <div class="combo-bar-info">
             🛠️ Borrador combo: <strong id="combo-count-display">0 / 5</strong>
@@ -322,7 +350,7 @@
             <h2>🛒 Tu Pedido Total <span id="modal-total-header" style="color:#00e676;">$0.00</span></h2>
             
             <div class="cart-summary-list" id="cart-summary-items">
-                <!-- Lista de items consolidados -->
+                <!-- Ítems del pedido -->
             </div>
 
             <div class="form-group"><label>Nombre y Apellidos</label><input type="text" id="cli-nombre" class="form-control" placeholder="Ej: Juan Pérez"></div>
@@ -349,10 +377,7 @@
         let datosGlobales = { electrodomesticos: [], medicamentos: [], combos: [], armatubox: [], miscelaneas: [], otros: [] };
         let seccionActual = 'electrodomesticos';
         
-        // 1. CARRITO PRINCIPAL (Pestañas Libres)
         let carritoGlobal = {};
-
-        // 2. CARRITO TEMPORAL INDEPENDIENTE (Solo para "Arma Tu Combo")
         let carritoComboBorrador = {};
 
         function parseCSV(text) {
@@ -431,7 +456,6 @@
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
-                // Determinar qué carrito consultar
                 let enCarrito = 0;
                 if (seccionId === 'armatubox') {
                     enCarrito = carritoComboBorrador[id] ? carritoComboBorrador[id].cantidad : 0;
@@ -466,7 +490,6 @@
 
         function cambiarCant(seccion, id, nombre, precio, cambio, event) {
             if (seccion === 'armatubox') {
-                // MANEJO DEL BORRADOR INDEPENDIENTE
                 if (!carritoComboBorrador[id]) {
                     carritoComboBorrador[id] = { nombre, precio, cantidad: 0 };
                 }
@@ -480,7 +503,6 @@
                     delete carritoComboBorrador[id];
                 }
             } else {
-                // MANEJO DEL CARRITO GLOBAL
                 if (!carritoGlobal[id]) {
                     carritoGlobal[id] = { nombre, precio, cantidad: 0 };
                 }
@@ -499,7 +521,6 @@
             actualizarUI();
         }
 
-        /* ANIMACIÓN DE VUELO DE PRODUCTO HACIA CUALQUIER CARRITO */
         function animarVueloHaciaTarget(id, targetId, event) {
             const originImg = document.getElementById(`img-${id}`);
             const targetEl = document.getElementById(targetId);
@@ -521,7 +542,7 @@
             const targetY = targetRect.top + targetRect.height / 2;
 
             const flyer = document.createElement('img');
-            flyer.src = originImg ? originImg.src : 'icon-192.png';
+            flyer.src = originImg ? originImg.src : 'logo.png';
             flyer.className = 'flying-item';
             flyer.style.left = `${startX - 25}px`;
             flyer.style.top = `${startY - 25}px`;
@@ -544,7 +565,6 @@
             }, 1200);
         }
 
-        /* TRANSFERIR EL COMBO COMPLETO AL CARRITO PRINCIPAL CUANDO ALCANZA 5 */
         function transferirComboAlCarritoPrincipal() {
             let totalItemsBorrador = 0;
             for (let id in carritoComboBorrador) {
@@ -553,7 +573,6 @@
 
             if (totalItemsBorrador < 5) return;
 
-            // Pasar productos del borrador al carrito global
             for (let id in carritoComboBorrador) {
                 const item = carritoComboBorrador[id];
                 if (!carritoGlobal[id]) {
@@ -562,10 +581,8 @@
                 carritoGlobal[id].cantidad += item.cantidad;
             }
 
-            // Vaciar borrador de Arma tu combo
             carritoComboBorrador = {};
 
-            // Efecto visual en el carrito principal arriba
             const cartBtn = document.getElementById('cart-target');
             cartBtn.classList.add('bounce');
             setTimeout(() => cartBtn.classList.remove('bounce'), 500);
@@ -576,14 +593,12 @@
         }
 
         function actualizarUI() {
-            // Contar carrito principal
             let totalItemsGlobal = 0, totalPriceGlobal = 0;
             for (let id in carritoGlobal) {
                 totalItemsGlobal += carritoGlobal[id].cantidad;
                 totalPriceGlobal += carritoGlobal[id].precio * carritoGlobal[id].cantidad;
             }
 
-            // Contar borrador de Arma tu combo
             let itemsBorrador = 0;
             for (let id in carritoComboBorrador) {
                 itemsBorrador += carritoComboBorrador[id].cantidad;
@@ -595,7 +610,6 @@
             const comboDisplay = document.getElementById('combo-count-display');
             const comboFinishBtn = document.getElementById('btn-combo-finish');
 
-            // Carrito superior
             cartBadge.innerText = totalItemsGlobal;
             if (totalItemsGlobal > 0) {
                 cartBtn.classList.add('glow-active');
@@ -605,7 +619,6 @@
                 btnModalSend.disabled = true;
             }
 
-            // Barra flotante "Arma Tu Combo"
             comboDisplay.innerText = `${itemsBorrador} / 5`;
             if (itemsBorrador >= 5) {
                 comboFinishBtn.classList.add('ready');
@@ -618,7 +631,13 @@
             document.getElementById('modal-total-header').innerText = `$${totalPriceGlobal.toFixed(2)}`;
         }
 
+        /* DIBUJAR LISTA DE PRODUCTOS DENTRO DEL MODAL CON BOTONES DE EDICIÓN Y ELIMINACIÓN */
         function abrirModalPedido() {
+            renderizarItemsModal();
+            document.getElementById('modalPedido').style.display = 'flex';
+        }
+
+        function renderizarItemsModal() {
             const summaryContainer = document.getElementById('cart-summary-items');
             let html = '', total = 0;
 
@@ -628,18 +647,45 @@
                 total += sub;
                 html += `
                     <div class="cart-item-row">
-                        <span><strong>${item.nombre}</strong> (x${item.cantidad})</span>
-                        <span style="color:#00e676;">$${sub.toFixed(2)}</span>
+                        <div class="cart-item-details">
+                            <strong>${item.nombre}</strong><br>
+                            <span style="color:#00e676;">$${sub.toFixed(2)}</span> ($${item.precio.toFixed(2)} c/u)
+                        </div>
+                        <div class="cart-item-controls">
+                            <button class="btn-modal-qty" onclick="modificarEnModal('${id}', -1)">-</button>
+                            <span style="font-weight:bold; min-width:18px; text-align:center;">${item.cantidad}</span>
+                            <button class="btn-modal-qty" onclick="modificarEnModal('${id}', 1)">+</button>
+                            <button class="btn-modal-delete" onclick="eliminarEnModal('${id}')" title="Eliminar del carrito">🗑️</button>
+                        </div>
                     </div>
                 `;
             }
 
             if (html === '') {
-                html = '<p style="text-align:center; color:#94a3b8;">Tu carrito principal está vacío.</p>';
+                html = '<p style="text-align:center; color:#94a3b8; padding: 10px;">Tu carrito está vacío.</p>';
             }
 
             summaryContainer.innerHTML = html;
-            document.getElementById('modalPedido').style.display = 'flex';
+            document.getElementById('modal-total-header').innerText = `$${total.toFixed(2)}`;
+        }
+
+        function modificarEnModal(id, cambio) {
+            if (carritoGlobal[id]) {
+                carritoGlobal[id].cantidad += cambio;
+                if (carritoGlobal[id].cantidad <= 0) {
+                    delete carritoGlobal[id];
+                }
+            }
+            renderizarSeccion(seccionActual);
+            actualizarUI();
+            renderizarItemsModal();
+        }
+
+        function eliminarEnModal(id) {
+            delete carritoGlobal[id];
+            renderizarSeccion(seccionActual);
+            actualizarUI();
+            renderizarItemsModal();
         }
 
         function cerrarModalPedido() { document.getElementById('modalPedido').style.display = 'none'; }
@@ -650,11 +696,11 @@
             const telefono = document.getElementById('cli-telefono').value.trim();
 
             if (!nombre || !direccion || !telefono) {
-                alert('Por favor completa los datos de entrega.');
+                alert('Por favor completa todos los datos de entrega.');
                 return;
             }
 
-            let msg = `*¡NUEVO PEDIDO - COMBOS CAMAGÜEY!* 🛒\n\n`;
+            let msg = `*¡NUEVO PEDIDO - CALYOR!* 🛒\n\n`;
             msg += `👤 *Cliente:* ${nombre}\n`;
             msg += `📍 *Dirección:* ${direccion}\n`;
             msg += `📞 *Teléfono:* ${telefono}\n\n`;
