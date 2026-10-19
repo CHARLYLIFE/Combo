@@ -130,7 +130,7 @@
             font-size: 1.1rem; font-weight: 800; color: #00e676; margin-bottom: 10px;
         }
 
-        /* CONTROLES DECANTIDAD Y BOTONES */
+        /* CONTROLES DE CANTIDAD Y BOTONES */
         .product-actions { display: flex; flex-direction: column; gap: 6px; }
         
         .btn-add {
@@ -203,23 +203,33 @@
         </div>
     </header>
 
-    <!-- PESTAÑAS DE CATEGORÍAS DESLIZABLES -->
+    <!-- PESTAÑAS DE CATEGORÍAS DESLIZABLES (ORDEN ACTUALIZADO) -->
     <nav class="categories-nav">
-        <button class="cat-btn active" onclick="cambiarSeccion('combos', this)">📦 Combos</button>
-        <button class="cat-btn" onclick="cambiarSeccion('armatubox', this)">🛠️ Arma tu Combo</button>
+        <button class="cat-btn active" onclick="cambiarSeccion('electrodomesticos', this)">⚡ Electrodomésticos</button>
         <button class="cat-btn" onclick="cambiarSeccion('medicamentos', this)">💊 Medicamentos</button>
-        <button class="cat-btn" onclick="cambiarSeccion('electrodomesticos', this)">⚡ Electrodomésticos</button>
-        <button class="cat-btn" onclick="cambiarSeccion('miscelaneas', this)">🛒 Misceláneas</button>
+        <button class="cat-btn" onclick="cambiarSeccion('combos', this)">📦 Combos</button>
+        <button class="cat-btn" onclick="cambiarSeccion('armatubox', this)">🛠️ Arma tu combo</button>
+        <button class="cat-btn" onclick="cambiarSeccion('miscelaneas', this)">🛒 Miscelánea</button>
         <button class="cat-btn" onclick="cambiarSeccion('otros', this)">📦 Otros</button>
     </nav>
 
     <div class="container">
-        <!-- SECCIÓN 1: COMBOS -->
-        <div id="combos" class="section active">
+        <!-- SECCIÓN 1: ELECTRODOMÉSTICOS -->
+        <div id="electrodomesticos" class="section active">
+            <div id="grid-electrodomesticos" class="products-grid"><div class="loading">Cargando electrodomésticos...</div></div>
+        </div>
+
+        <!-- SECCIÓN 2: MEDICAMENTOS -->
+        <div id="medicamentos" class="section">
+            <div id="grid-medicamentos" class="products-grid"><div class="loading">Cargando medicamentos...</div></div>
+        </div>
+
+        <!-- SECCIÓN 3: COMBOS -->
+        <div id="combos" class="section">
             <div id="grid-combos" class="products-grid"><div class="loading">Cargando combos...</div></div>
         </div>
 
-        <!-- SECCIÓN 2: ARMA TU COMBO (MÍNIMO 5) -->
+        <!-- SECCIÓN 4: ARMA TU COMBO (MÍNIMO 5) -->
         <div id="armatubox" class="section">
             <div class="alert-banner">
                 <span>⚠️</span>
@@ -228,19 +238,9 @@
             <div id="grid-armatubox" class="products-grid"><div class="loading">Cargando artículos...</div></div>
         </div>
 
-        <!-- SECCIÓN 3: MEDICAMENTOS -->
-        <div id="medicamentos" class="section">
-            <div id="grid-medicamentos" class="products-grid"><div class="loading">Cargando medicamentos...</div></div>
-        </div>
-
-        <!-- SECCIÓN 4: ELECTRODOMÉSTICOS -->
-        <div id="electrodomesticos" class="section">
-            <div id="grid-electrodomesticos" class="products-grid"><div class="loading">Cargando electrodomésticos...</div></div>
-        </div>
-
-        <!-- SECCIÓN 5: MISCELÁNEAS -->
+        <!-- SECCIÓN 5: MISCELÁNEA -->
         <div id="miscelaneas" class="section">
-            <div id="grid-miscelaneas" class="products-grid"><div class="loading">Cargando misceláneas...</div></div>
+            <div id="grid-miscelaneas" class="products-grid"><div class="loading">Cargando miscelánea...</div></div>
         </div>
 
         <!-- SECCIÓN 6: OTROS -->
@@ -273,26 +273,24 @@
     </div>
 
     <script>
-        // Registrar Service Worker para PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
-        // CSV URL (Usamos la misma hoja o puedes separar por GID si lo prefieres)
         const URL_CSV_COMBOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=0&single=true&output=csv';
         const URL_CSV_PRODUCTOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
 
         let datosGlobales = {
+            electrodomesticos: [],
+            medicamentos: [],
             combos: [],
             armatubox: [],
-            medicamentos: [],
-            electrodomesticos: [],
             miscelaneas: [],
             otros: []
         };
 
-        let seccionActual = 'combos';
-        let carrito = { tipo: 'combos', items: {} };
+        let seccionActual = 'electrodomesticos';
+        let carrito = { tipo: 'electrodomesticos', items: {} };
 
         function parseCSV(text) {
             const lines = text.trim().split('\n');
@@ -315,14 +313,12 @@
                 const resP = await fetch(URL_CSV_PRODUCTOS);
                 const prods = parseCSV(await resP.text());
 
-                // Distribuir productos por categoría (puedes ajustar según tu columna CATEGORIA en Sheets o se asignan equitativamente)
                 datosGlobales.armatubox = prods;
                 datosGlobales.medicamentos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('med'));
                 datosGlobales.electrodomesticos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('elect'));
                 datosGlobales.miscelaneas = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('misc'));
                 datosGlobales.otros = prods.filter(p => !(p.CATEGORIA || '').toLowerCase().match(/med|elect|misc/));
 
-                // Si no hay categorías separadas en la hoja, replicamos para que ninguna sección se quede vacía
                 if(datosGlobales.medicamentos.length === 0) datosGlobales.medicamentos = prods;
                 if(datosGlobales.electrodomesticos.length === 0) datosGlobales.electrodomesticos = prods;
                 if(datosGlobales.miscelaneas.length === 0) datosGlobales.miscelaneas = prods;
@@ -440,7 +436,6 @@
                 return;
             }
 
-            // Renderizado simplificado para búsqueda
             container.innerHTML = filtrados.map((item, i) => {
                 const id = item.ID || `search_${i}`;
                 const nombre = item.NOMBRE || 'Producto';
