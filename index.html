@@ -28,11 +28,11 @@
             padding-bottom: 100px; 
         }
 
-        /* ESTILO AMAZON: HEADER CON IMAGEN DE FONDO (BANNER.JPG) Y BUSCADOR */
+        /* ESTILO AMAZON: HEADER CON FONDO BANNER.PNG Y BUSCADOR */
         header {
             position: sticky; top: 0; z-index: 100;
             background: linear-gradient(180deg, rgba(19, 25, 33, 0.6) 0%, rgba(19, 25, 33, 0.85) 100%), 
-                        url('banner.jpg') center/cover no-repeat;
+                        url('banner.png') center/cover no-repeat;
             padding: 14px 16px;
             border-bottom: 2px solid #febd69;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -198,7 +198,7 @@
 </head>
 <body>
 
-    <!-- HEADER CON IMAGEN BANNER.JPG Y BUSCADOR -->
+    <!-- HEADER CON IMAGEN BANNER.PNG Y BUSCADOR -->
     <header>
         <div class="header-top">
             <a href="#" class="header-logo">📦 Combos Camagüey</a>
@@ -272,4 +272,240 @@
             <div class="form-group"><label>Dirección de Entrega</label><input type="text" id="cli-direccion" class="form-control" placeholder="Calle, reparto..."></div>
             <div class="form-group"><label>Número de Teléfono</label><input type="tel" id="cli-telefono" class="form-control" placeholder="+53..."></div>
             <div class="modal-btns">
-                <button style="background:#33415
+                <button style="background:#334155; color:#fff; border:none;" onclick="cerrarModalPedido()">Cancelar</button>
+                <button style="background:#00e676; color:#000; border:none;" onclick="enviarWhatsApp()">Enviar WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+        }
+
+        const URL_CSV_COMBOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=0&single=true&output=csv';
+        const URL_CSV_PRODUCTOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
+
+        let datosGlobales = {
+            electrodomesticos: [],
+            medicamentos: [],
+            combos: [],
+            armatubox: [],
+            miscelaneas: [],
+            otros: []
+        };
+
+        let seccionActual = 'electrodomesticos';
+        let carrito = { tipo: 'electrodomesticos', items: {} };
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toUpperCase());
+            return lines.slice(1).map((line, idx) => {
+                if (!line.trim()) return null;
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                let obj = { ID: 'item_' + idx };
+                headers.forEach((h, i) => { obj[h] = values[i] || ''; });
+                return obj;
+            }).filter(Boolean);
+        }
+
+        async function cargarDatos() {
+            try {
+                const resC = await fetch(URL_CSV_COMBOS);
+                datosGlobales.combos = parseCSV(await resC.text());
+
+                const resP = await fetch(URL_CSV_PRODUCTOS);
+                const prods = parseCSV(await resP.text());
+
+                datosGlobales.armatubox = prods;
+                datosGlobales.medicamentos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('med'));
+                datosGlobales.electrodomesticos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('elect'));
+                datosGlobales.miscelaneas = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('misc'));
+                datosGlobales.otros = prods.filter(p => !(p.CATEGORIA || '').toLowerCase().match(/med|elect|misc/));
+
+                if(datosGlobales.medicamentos.length === 0) datosGlobales.medicamentos = prods;
+                if(datosGlobales.electrodomesticos.length === 0) datosGlobales.electrodomesticos = prods;
+                if(datosGlobales.miscelaneas.length === 0) datosGlobales.miscelaneas = prods;
+                if(datosGlobales.otros.length === 0) datosGlobales.otros = prods;
+
+                renderizarSeccion(seccionActual);
+            } catch (err) {
+                console.error("Error cargando catálogos", err);
+            }
+        }
+
+        function cambiarSeccion(seccionId, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(seccionId).classList.add('active');
+            btn.classList.add('active');
+            
+            seccionActual = seccionId;
+            carrito = { tipo: seccionId, items: {} };
+            actualizarUI();
+            renderizarSeccion(seccionId);
+        }
+
+        function renderizarSeccion(seccionId) {
+            const container = document.getElementById(`grid-${seccionId}`);
+            const lista = datosGlobales[seccionId] || [];
+
+            if (lista.length === 0) {
+                container.innerHTML = '<p class="loading">No hay productos disponibles.</p>';
+                return;
+            }
+
+            container.innerHTML = lista.map((item, i) => {
+                const id = item.ID || `${seccionId}_${i}`;
+                const nombre = item.NOMBRE || 'Producto';
+                let rawDesc = item.DETALLES || item.DESC || '';
+                const desc = rawDesc.replaceAll(',', '\n').replaceAll('|', '\n');
+                const precio = parseFloat(item.PRECIO || 0);
+                const imgUrl = item.IMAGEN || item.FOTO || '';
+                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
+
+                const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
+
+                return `
+                    <div class="product-card">
+                        <div>
+                            <div class="product-img-container">${imgTag}</div>
+                            <div class="product-title">${nombre}</div>
+                            ${desc ? `<div class="product-desc">${desc}</div>` : ''}
+                            <div class="product-price">$${precio.toFixed(2)}</div>
+                        </div>
+                        <div class="product-actions" id="actions-${id}">
+                            ${enCarrito === 0 ? 
+                                `<button class="btn-add" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1)">Agregar</button>` :
+                                `<div class="qty-control">
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, -1)">-</button>
+                                    <span class="qty-num">${enCarrito}</span>
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1)">+</button>
+                                 </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function cambiarCant(seccion, id, nombre, precio, cambio) {
+            if (carrito.tipo !== seccion) {
+                carrito.tipo = seccion;
+                carrito.items = {};
+            }
+
+            if (!carrito.items[id]) {
+                carrito.items[id] = { nombre, precio, cantidad: 0 };
+            }
+
+            carrito.items[id].cantidad += cambio;
+
+            if (carrito.items[id].cantidad <= 0) {
+                delete carrito.items[id];
+            }
+
+            renderizarSeccion(seccion);
+            actualizarUI();
+        }
+
+        function actualizarUI() {
+            let totalItems = 0, totalPrice = 0;
+            for (let id in carrito.items) {
+                totalItems += carrito.items[id].cantidad;
+                totalPrice += carrito.items[id].precio * carrito.items[id].cantidad;
+            }
+
+            document.getElementById('cart-count').innerText = totalItems;
+            document.getElementById('cart-total').innerText = `$${totalPrice.toFixed(2)}`;
+
+            const btnPedir = document.getElementById('btn-pedir');
+            if ((carrito.tipo === 'armatubox' && totalItems >= 5) || (carrito.tipo !== 'armatubox' && totalItems > 0)) {
+                btnPedir.disabled = false;
+            } else {
+                btnPedir.disabled = true;
+            }
+        }
+
+        function filtrarProductos() {
+            const query = document.getElementById('buscador').value.toLowerCase();
+            const lista = datosGlobales[seccionActual] || [];
+            const container = document.getElementById(`grid-${seccionActual}`);
+
+            const filtrados = lista.filter(item => (item.NOMBRE || '').toLowerCase().includes(query) || (item.DESC || '').toLowerCase().includes(query));
+
+            if (filtrados.length === 0) {
+                container.innerHTML = '<p class="loading">No se encontraron productos.</p>';
+                return;
+            }
+
+            container.innerHTML = filtrados.map((item, i) => {
+                const id = item.ID || `search_${i}`;
+                const nombre = item.NOMBRE || 'Producto';
+                const precio = parseFloat(item.PRECIO || 0);
+                const imgUrl = item.IMAGEN || item.FOTO || '';
+                const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
+                const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
+
+                return `
+                    <div class="product-card">
+                        <div>
+                            <div class="product-img-container">${imgTag}</div>
+                            <div class="product-title">${nombre}</div>
+                            <div class="product-price">$${precio.toFixed(2)}</div>
+                        </div>
+                        <div class="product-actions">
+                            ${enCarrito === 0 ? 
+                                `<button class="btn-add" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1)">Agregar</button>` :
+                                `<div class="qty-control">
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, -1)">-</button>
+                                    <span class="qty-num">${enCarrito}</span>
+                                    <button class="qty-btn" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1)">+</button>
+                                 </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function abrirModalPedido() { document.getElementById('modalPedido').style.display = 'flex'; }
+        function cerrarModalPedido() { document.getElementById('modalPedido').style.display = 'none'; }
+
+        function enviarWhatsApp() {
+            const nombre = document.getElementById('cli-nombre').value.trim();
+            const direccion = document.getElementById('cli-direccion').value.trim();
+            const telefono = document.getElementById('cli-telefono').value.trim();
+
+            if (!nombre || !direccion || !telefono) {
+                alert('Por favor complete todos los campos de entrega.');
+                return;
+            }
+
+            let msg = `*¡NUEVO PEDIDO - COMBOS CAMAGÜEY!* 🛒\n\n`;
+            msg += `👤 *Cliente:* ${nombre}\n`;
+            msg += `📍 *Dirección:* ${direccion}\n`;
+            msg += `📞 *Teléfono:* ${telefono}\n\n`;
+            msg += `📦 *Detalle:* \n`;
+
+            let total = 0;
+            for(let id in carrito.items) {
+                let item = carrito.items[id];
+                let sub = item.precio * item.cantidad;
+                msg += `- ${item.nombre} x${item.cantidad} ($${sub.toFixed(2)})\n`;
+                total += sub;
+            }
+            msg += `\n💰 *Total a pagar:* $${total.toFixed(2)}`;
+
+            const url = `https://wa.me/+5350306150?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+            cerrarModalPedido();
+        }
+
+        cargarDatos();
+    </script>
+</body>
+</html>
