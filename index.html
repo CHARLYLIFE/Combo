@@ -25,7 +25,7 @@
         body { 
             background-color: #0f172a; 
             color: #fff; 
-            padding-bottom: 40px; 
+            padding-bottom: 90px; 
             overflow-x: hidden;
         }
 
@@ -48,7 +48,7 @@
             text-shadow: 0 2px 6px rgba(0,0,0,0.9);
         }
 
-        /* BOTÓN DE CARRITO EN EL HEADER (CON EFECTO NEÓN) */
+        /* BOTÓN DE CARRITO EN EL HEADER */
         .cart-top-btn {
             position: relative; background: #232f3e; border: 2px solid #febd69; color: #febd69;
             padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 1.05rem;
@@ -59,11 +59,10 @@
             font-size: 0.8rem; font-weight: 800;
         }
 
-        /* ESTADO ILUMINADO DEL CARRITO CUANDO SE CUMPLE EL MÍNIMO */
         .cart-top-btn.glow-active {
             border-color: #00e676 !important;
             color: #00e676 !important;
-            box-shadow: 0 0 15px rgba(0, 230, 118, 0.8), inset 0 0 10px rgba(0, 230, 118, 0.3);
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.8);
             animation: pulseGlow 1.5s infinite alternate;
         }
         .cart-top-btn.glow-active .cart-badge {
@@ -192,13 +191,35 @@
         }
         .btn-add-cart-icon:active { transform: scale(0.95); }
 
-        /* ANIMACIÓN LENTA DE VUELO DE PRODUCTO (1.2 Segundos) */
+        /* ANIMACIÓN LENTA DE VUELO DE PRODUCTO (1.2s) */
         .flying-item {
             position: fixed; z-index: 9999; pointer-events: none;
             width: 50px; height: 50px; border-radius: 50%;
             object-fit: cover; border: 2px solid #febd69;
             box-shadow: 0 6px 16px rgba(0,0,0,0.6);
             transition: all 1.2s cubic-bezier(0.25, 1, 0.3, 1);
+        }
+
+        /* BARRA FLOTANTE EXCLUSIVA PARA ARMA TU COMBO */
+        .combo-floating-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #131921;
+            padding: 12px 20px; border-top: 2px solid #febd69; display: none;
+            justify-content: space-between; align-items: center; z-index: 200;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+        }
+        .combo-floating-bar.active { display: flex; }
+
+        .combo-bar-info { font-size: 0.85rem; color: #94a3b8; }
+        .combo-bar-info strong { color: #febd69; font-size: 1rem; }
+
+        .btn-combo-check {
+            background: #334155; color: #94a3b8; border: none; padding: 10px 18px;
+            border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: not-allowed;
+            transition: all 0.3s ease;
+        }
+        .btn-combo-check.ready {
+            background: #00e676 !important; color: #000 !important; cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.6);
         }
 
         /* MODAL / CARRITO COMPLETO */
@@ -214,7 +235,7 @@
         
         .cart-summary-list {
             background: #0f172a; border-radius: 8px; padding: 10px; margin-bottom: 15px;
-            max-height: 160px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155;
+            max-height: 200px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155;
         }
         .cart-item-row { display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #334155; }
 
@@ -242,7 +263,7 @@
 </head>
 <body>
 
-    <!-- HEADER ESTILO AMAZON CON CARRITO DE NEÓN SUPERIOR -->
+    <!-- HEADER ESTILO AMAZON -->
     <header>
         <div class="header-top">
             <a href="#" class="header-logo">📦 Combos Camagüey</a>
@@ -276,7 +297,7 @@
         <div id="armatubox" class="section">
             <div class="alert-banner">
                 <span>⚠️</span>
-                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos. ¡El carrito brillará cuando lo alcances!</span>
+                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos sueltos para esta sección.</span>
             </div>
             <div id="grid-armatubox" class="products-grid"><div class="loading">Cargando artículos...</div></div>
         </div>
@@ -285,10 +306,18 @@
         <div id="otros" class="section"><div id="grid-otros" class="products-grid"><div class="loading">Cargando otros...</div></div></div>
     </div>
 
+    <!-- BARRA FLOTANTE PARA "ARMA TU COMBO" -->
+    <div class="combo-floating-bar" id="combo-bar">
+        <div class="combo-bar-info">
+            🛠️ Mínimo combo: <strong id="combo-count-display">0 / 5</strong>
+        </div>
+        <button class="btn-combo-check" id="btn-combo-finish" onclick="abrirModalPedido()"> Ver Carrito 🛒</button>
+    </div>
+
     <!-- MODAL DE PEDIDO Y WHATSAPP -->
     <div class="modal" id="modalPedido">
         <div class="modal-content">
-            <h2>🛒 Tu Pedido <span id="modal-total-header" style="color:#00e676;">$0.00</span></h2>
+            <h2>🛒 Tu Pedido Total <span id="modal-total-header" style="color:#00e676;">$0.00</span></h2>
             
             <div class="cart-summary-list" id="cart-summary-items">
                 <!-- Lista detallada del pedido -->
@@ -317,7 +346,9 @@
 
         let datosGlobales = { electrodomesticos: [], medicamentos: [], combos: [], armatubox: [], miscelaneas: [], otros: [] };
         let seccionActual = 'electrodomesticos';
-        let carrito = { tipo: 'electrodomesticos', items: {} };
+        
+        // CARRITO UNIFICADO (Ya no se reinicia al cambiar de sección)
+        let carritoGlobal = {};
 
         function parseCSV(text) {
             const lines = text.trim().split('\n');
@@ -365,7 +396,15 @@
             btn.classList.add('active');
             
             seccionActual = seccionId;
-            carrito = { tipo: seccionId, items: {} };
+
+            // Mostrar/Ocultar la barra flotante de "Arma tu combo"
+            const comboBar = document.getElementById('combo-bar');
+            if (seccionActual === 'armatubox') {
+                comboBar.classList.add('active');
+            } else {
+                comboBar.classList.remove('active');
+            }
+
             actualizarUI();
             renderizarSeccion(seccionId);
         }
@@ -388,7 +427,7 @@
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
-                const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
+                const enCarrito = carritoGlobal[id] ? carritoGlobal[id].cantidad : 0;
 
                 return `
                     <div class="product-card">
@@ -416,30 +455,25 @@
         }
 
         function cambiarCant(seccion, id, nombre, precio, cambio, event) {
-            if (carrito.tipo !== seccion) {
-                carrito.tipo = seccion;
-                carrito.items = {};
+            if (!carritoGlobal[id]) {
+                carritoGlobal[id] = { nombre, precio, cantidad: 0, seccion };
             }
 
-            if (!carrito.items[id]) {
-                carrito.items[id] = { nombre, precio, cantidad: 0 };
-            }
-
-            carrito.items[id].cantidad += cambio;
+            carritoGlobal[id].cantidad += cambio;
 
             if (cambio > 0 && event) {
                 animarVueloLento(id, event);
             }
 
-            if (carrito.items[id].cantidad <= 0) {
-                delete carrito.items[id];
+            if (carritoGlobal[id].cantidad <= 0) {
+                delete carritoGlobal[id];
             }
 
             renderizarSeccion(seccion);
             actualizarUI();
         }
 
-        /* ANIMACIÓN MÁS LENTA DE VUELO DE PRODUCTO (1.2s) */
+        /* ANIMACIÓN DE VUELO DE PRODUCTO AL CARRITO (1.2s) */
         function animarVueloLento(id, event) {
             const originImg = document.getElementById(`img-${id}`);
             const cartTarget = document.getElementById('cart-target');
@@ -485,38 +519,48 @@
         }
 
         function actualizarUI() {
-            let totalItems = 0, totalPrice = 0;
-            for (let id in carrito.items) {
-                totalItems += carrito.items[id].cantidad;
-                totalPrice += carrito.items[id].precio * carrito.items[id].cantidad;
+            let totalItems = 0, totalPrice = 0, itemsArmaTuCombo = 0;
+
+            for (let id in carritoGlobal) {
+                const item = carritoGlobal[id];
+                totalItems += item.cantidad;
+                totalPrice += item.precio * item.cantidad;
+
+                if (item.seccion === 'armatubox') {
+                    itemsArmaTuCombo += item.cantidad;
+                }
             }
 
             const cartBtn = document.getElementById('cart-target');
             const cartBadge = document.getElementById('cart-top-count');
-            const cartLabel = document.getElementById('cart-top-label');
             const btnModalSend = document.getElementById('btn-modal-send');
+            const comboDisplay = document.getElementById('combo-count-display');
+            const comboFinishBtn = document.getElementById('btn-combo-finish');
 
-            if (carrito.tipo === 'armatubox') {
-                cartBadge.innerText = `${totalItems}/5`;
-                if (totalItems >= 5) {
-                    cartBtn.classList.add('glow-active');
-                    cartLabel.innerText = "¡Mínimo listo!";
-                    btnModalSend.disabled = false;
-                } else {
-                    cartBtn.classList.remove('glow-active');
-                    cartLabel.innerText = "Faltan " + (5 - totalItems);
-                    btnModalSend.disabled = true;
-                }
+            cartBadge.innerText = totalItems;
+
+            // Validación de la barra flotante "Arma tu Combo"
+            comboDisplay.innerText = `${itemsArmaTuCombo} / 5`;
+            if (itemsArmaTuCombo >= 5) {
+                comboFinishBtn.classList.add('ready');
+                comboFinishBtn.innerText = "¡Mínimo listo! Ver Carrito 🚀";
             } else {
-                cartBadge.innerText = totalItems;
-                cartLabel.innerText = "Carrito";
-                if (totalItems > 0) {
-                    cartBtn.classList.add('glow-active');
-                    btnModalSend.disabled = false;
-                } else {
-                    cartBtn.classList.remove('glow-active');
-                    btnModalSend.disabled = true;
-                }
+                comboFinishBtn.classList.remove('ready');
+                comboFinishBtn.innerText = `Faltan ${5 - itemsArmaTuCombo} más`;
+            }
+
+            // Habilitar el envío por WhatsApp si cumple condiciones
+            // (Si usó "Arma tu combo" debe tener al menos 5, o si compró de otras secciones)
+            let puedePedir = false;
+            if (itemsArmaTuCombo > 0 && itemsArmaTuCombo >= 5) puedePedir = true;
+            if (itemsArmaTuCombo === 0 && totalItems > 0) puedePedir = true;
+
+            if (puedePedir) {
+                cartBtn.classList.add('glow-active');
+                btnModalSend.disabled = false;
+            } else {
+                cartBtn.classList.remove('glow-active');
+                btnModalSend.disabled = true;
             }
 
             document.getElementById('modal-total-header').innerText = `$${totalPrice.toFixed(2)}`;
@@ -526,8 +570,8 @@
             const summaryContainer = document.getElementById('cart-summary-items');
             let html = '', total = 0;
 
-            for (let id in carrito.items) {
-                let item = carrito.items[id];
+            for (let id in carritoGlobal) {
+                let item = carritoGlobal[id];
                 let sub = item.precio * item.cantidad;
                 total += sub;
                 html += `
@@ -565,8 +609,8 @@
             msg += `📦 *Detalle del Pedido:* \n`;
 
             let total = 0;
-            for(let id in carrito.items) {
-                let item = carrito.items[id];
+            for(let id in carritoGlobal) {
+                let item = carritoGlobal[id];
                 let sub = item.precio * item.cantidad;
                 msg += `- ${item.nombre} x${item.cantidad} ($${sub.toFixed(2)})\n`;
                 total += sub;
@@ -596,7 +640,7 @@
                 const precio = parseFloat(item.PRECIO || 0);
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
-                const enCarrito = carrito.items[id] ? carrito.items[id].cantidad : 0;
+                const enCarrito = carritoGlobal[id] ? carritoGlobal[id].cantidad : 0;
 
                 return `
                     <div class="product-card">
