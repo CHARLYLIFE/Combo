@@ -1,5 +1,5 @@
-const CACHE_NAME = 'calyor-app-v3';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'calyor-app-v4';
+const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
@@ -9,17 +9,17 @@ const ASSETS_TO_CACHE = [
   './icon-512.png'
 ];
 
-// Instalación: Guarda todos los archivos base en la memoria local
+// Instalación: Carga recursos base
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(STATIC_ASSETS);
     })
   );
   self.skipWaiting();
 });
 
-// Activación: Elimina versiones antiguas de la caché
+// Activación: Limpieza de versiones antiguas
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -35,30 +35,49 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Intercepción de peticiones:
+// Estrategia Stale-While-Revalidate & Fallback para Offline
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // 1. Datos de Google Sheets: SIEMPRE buscar en la red primero para actualizar precios/productos
+  // Manejo especial para las hojas de datos de Google Sheets
   if (requestUrl.hostname.includes('docs.google.com')) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Si hay internet, guarda una copia limpia de los datos actualizados
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Si no hay internet (OFFLINE), lee los últimos datos guardados
+          return caches.match(event.request);
+        })
     );
     return;
   }
 
-  // 2. Archivos estáticos e imágenes: CACHE-FIRST (Usa la memoria del teléfono directamente)
+  // Manejo de archivos locales (HTML, imágenes, CSS)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        return cachedResponse; // Devuelve directamente el archivo guardado localmente
+        // Actualiza la memoria en segundo plano
+        fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+          }
+        }).catch(() => {});
+        return cachedResponse;
       }
+
       return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+        if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
         return networkResponse;
       });
