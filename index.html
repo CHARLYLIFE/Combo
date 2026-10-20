@@ -245,22 +245,24 @@
         
         .cart-summary-list {
             background: #0f172a; border-radius: 8px; padding: 10px; margin-bottom: 15px;
-            max-height: 220px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155;
+            max-height: 240px; overflow-y: auto; font-size: 0.85rem; border: 1px solid #334155;
         }
         
         .cart-item-row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #334155;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #334155;
         }
         .cart-item-details { flex: 1; padding-right: 8px; }
+        .cart-item-subtext { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; white-space: pre-line; }
         .cart-item-controls { display: flex; align-items: center; gap: 6px; }
+        
         .btn-modal-qty {
             background: #334155; color: #fff; border: none; width: 24px; height: 24px;
             border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
         }
         .btn-modal-delete {
             background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444;
-            width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+            width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
             display: flex; align-items: center; justify-content: center; margin-left: 4px;
         }
 
@@ -325,7 +327,7 @@
         <div id="armatubox" class="section">
             <div class="alert-banner">
                 <span>⚠️</span>
-                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos sueltos para enviarlos al carrito principal.</span>
+                <span><strong>Mínimo de compra:</strong> Selecciona al menos 5 artículos sueltos para empaquetarlos en tu combo.</span>
             </div>
             <div id="grid-armatubox" class="products-grid"><div class="loading">Cargando artículos...</div></div>
         </div>
@@ -379,6 +381,7 @@
         
         let carritoGlobal = {};
         let carritoComboBorrador = {};
+        let contadorCombosArmados = 0;
 
         function parseCSV(text) {
             const lines = text.trim().split('\n');
@@ -504,7 +507,7 @@
                 }
             } else {
                 if (!carritoGlobal[id]) {
-                    carritoGlobal[id] = { nombre, precio, cantidad: 0 };
+                    carritoGlobal[id] = { nombre, precio, cantidad: 0, esComboArmado: false };
                 }
                 carritoGlobal[id].cantidad += cambio;
 
@@ -565,22 +568,34 @@
             }, 1200);
         }
 
+        /* AGRUPAR TODO EL BORRADOR COMO UN SOLO "COMBO PERSONALIZADO" */
         function transferirComboAlCarritoPrincipal() {
             let totalItemsBorrador = 0;
+            let precioTotalCombo = 0;
+            let listaDetallada = [];
+
             for (let id in carritoComboBorrador) {
-                totalItemsBorrador += carritoComboBorrador[id].cantidad;
+                const item = carritoComboBorrador[id];
+                totalItemsBorrador += item.cantidad;
+                precioTotalCombo += item.precio * item.cantidad;
+                listaDetallada.push(`• ${item.nombre} (x${item.cantidad})`);
             }
 
             if (totalItemsBorrador < 5) return;
 
-            for (let id in carritoComboBorrador) {
-                const item = carritoComboBorrador[id];
-                if (!carritoGlobal[id]) {
-                    carritoGlobal[id] = { nombre: `${item.nombre} (Combo)`, precio: item.precio, cantidad: 0 };
-                }
-                carritoGlobal[id].cantidad += item.cantidad;
-            }
+            contadorCombosArmados++;
+            const comboId = `combo_armado_${contadorCombosArmados}`;
 
+            // Agrupar como 1 solo paquete indivisible
+            carritoGlobal[comboId] = {
+                nombre: `📦 Combo Personalizado #${contadorCombosArmados} (${totalItemsBorrador} art.)`,
+                detalles: listaDetallada.join('\n'),
+                precio: precioTotalCombo,
+                cantidad: 1,
+                esComboArmado: true
+            };
+
+            // Vaciar borrador
             carritoComboBorrador = {};
 
             const cartBtn = document.getElementById('cart-target');
@@ -589,7 +604,7 @@
 
             renderizarSeccion('armatubox');
             actualizarUI();
-            alert('¡Tu Combo personalizado ha sido añadido con éxito al Carrito Principal! 🛒');
+            alert(`¡Tu Combo Personalizado (${totalItemsBorrador} artículos) fue empaquetado y añadido al Carrito Principal! 🛒`);
         }
 
         function actualizarUI() {
@@ -631,7 +646,6 @@
             document.getElementById('modal-total-header').innerText = `$${totalPriceGlobal.toFixed(2)}`;
         }
 
-        /* DIBUJAR LISTA DE PRODUCTOS DENTRO DEL MODAL CON BOTONES DE EDICIÓN Y ELIMINACIÓN */
         function abrirModalPedido() {
             renderizarItemsModal();
             document.getElementById('modalPedido').style.display = 'flex';
@@ -645,20 +659,38 @@
                 let item = carritoGlobal[id];
                 let sub = item.precio * item.cantidad;
                 total += sub;
-                html += `
-                    <div class="cart-item-row">
-                        <div class="cart-item-details">
-                            <strong>${item.nombre}</strong><br>
-                            <span style="color:#00e676;">$${sub.toFixed(2)}</span> ($${item.precio.toFixed(2)} c/u)
+
+                if (item.esComboArmado) {
+                    // Muestra el combo como 1 solo paquete con su lista y botón para borrarlo completo
+                    html += `
+                        <div class="cart-item-row">
+                            <div class="cart-item-details">
+                                <strong style="color:#febd69;">${item.nombre}</strong><br>
+                                <div class="cart-item-subtext">${item.detalles}</div>
+                                <span style="color:#00e676; font-weight:bold;">$${sub.toFixed(2)}</span>
+                            </div>
+                            <div class="cart-item-controls">
+                                <button class="btn-modal-delete" onclick="eliminarEnModal('${id}')" title="Eliminar este combo completo">🗑️</button>
+                            </div>
                         </div>
-                        <div class="cart-item-controls">
-                            <button class="btn-modal-qty" onclick="modificarEnModal('${id}', -1)">-</button>
-                            <span style="font-weight:bold; min-width:18px; text-align:center;">${item.cantidad}</span>
-                            <button class="btn-modal-qty" onclick="modificarEnModal('${id}', 1)">+</button>
-                            <button class="btn-modal-delete" onclick="eliminarEnModal('${id}')" title="Eliminar del carrito">🗑️</button>
+                    `;
+                } else {
+                    // Productos individuales normales
+                    html += `
+                        <div class="cart-item-row">
+                            <div class="cart-item-details">
+                                <strong>${item.nombre}</strong><br>
+                                <span style="color:#00e676;">$${sub.toFixed(2)}</span> ($${item.precio.toFixed(2)} c/u)
+                            </div>
+                            <div class="cart-item-controls">
+                                <button class="btn-modal-qty" onclick="modificarEnModal('${id}', -1)">-</button>
+                                <span style="font-weight:bold; min-width:18px; text-align:center;">${item.cantidad}</span>
+                                <button class="btn-modal-qty" onclick="modificarEnModal('${id}', 1)">+</button>
+                                <button class="btn-modal-delete" onclick="eliminarEnModal('${id}')" title="Eliminar producto">🗑️</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             if (html === '') {
@@ -710,7 +742,12 @@
             for(let id in carritoGlobal) {
                 let item = carritoGlobal[id];
                 let sub = item.precio * item.cantidad;
-                msg += `- ${item.nombre} x${item.cantidad} ($${sub.toFixed(2)})\n`;
+                
+                if (item.esComboArmado) {
+                    msg += `\n*${item.nombre}* - $${sub.toFixed(2)}\n${item.detalles}\n`;
+                } else {
+                    msg += `- ${item.nombre} x${item.cantidad} ($${sub.toFixed(2)})\n`;
+                }
                 total += sub;
             }
             msg += `\n💰 *Total a pagar:* $${total.toFixed(2)}`;
