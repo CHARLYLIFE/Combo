@@ -373,8 +373,12 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
+        // ENLACES CSV DE GOOGLE SHEETS
         const URL_CSV_COMBOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=0&single=true&output=csv';
-        const URL_CSV_PRODUCTOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
+        const URL_CSV_ARMATUBOX = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
+        const URL_CSV_ELECTRO = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=2127319084&single=true&output=csv';
+        const URL_CSV_MEDICINAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=1918521291&single=true&output=csv';
+        const URL_CSV_OTROS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=671549051&single=true&output=csv';
 
         let datosGlobales = { electrodomesticos: [], medicamentos: [], combos: [], armatubox: [], miscelaneas: [], otros: [] };
         let seccionActual = 'electrodomesticos';
@@ -384,6 +388,7 @@
         let contadorCombosArmados = 0;
 
         function parseCSV(text) {
+            if (!text) return [];
             const lines = text.trim().split('\n');
             if (lines.length < 2) return [];
             const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toUpperCase());
@@ -398,22 +403,20 @@
 
         async function cargarDatos() {
             try {
-                const resC = await fetch(URL_CSV_COMBOS);
-                datosGlobales.combos = parseCSV(await resC.text());
+                const [resE, resM, resC, resA, resO] = await Promise.all([
+                    fetch(URL_CSV_ELECTRO).then(r => r.text()).catch(() => ''),
+                    fetch(URL_CSV_MEDICINAS).then(r => r.text()).catch(() => ''),
+                    fetch(URL_CSV_COMBOS).then(r => r.text()).catch(() => ''),
+                    fetch(URL_CSV_ARMATUBOX).then(r => r.text()).catch(() => ''),
+                    fetch(URL_CSV_OTROS).then(r => r.text()).catch(() => '')
+                ]);
 
-                const resP = await fetch(URL_CSV_PRODUCTOS);
-                const prods = parseCSV(await resP.text());
-
-                datosGlobales.armatubox = prods;
-                datosGlobales.medicamentos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('med'));
-                datosGlobales.electrodomesticos = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('elect'));
-                datosGlobales.miscelaneas = prods.filter(p => (p.CATEGORIA || '').toLowerCase().includes('misc'));
-                datosGlobales.otros = prods.filter(p => !(p.CATEGORIA || '').toLowerCase().match(/med|elect|misc/));
-
-                if(datosGlobales.medicamentos.length === 0) datosGlobales.medicamentos = prods;
-                if(datosGlobales.electrodomesticos.length === 0) datosGlobales.electrodomesticos = prods;
-                if(datosGlobales.miscelaneas.length === 0) datosGlobales.miscelaneas = prods;
-                if(datosGlobales.otros.length === 0) datosGlobales.otros = prods;
+                datosGlobales.electrodomesticos = parseCSV(resE);
+                datosGlobales.medicamentos = parseCSV(resM);
+                datosGlobales.combos = parseCSV(resC);
+                datosGlobales.armatubox = parseCSV(resA);
+                datosGlobales.otros = parseCSV(resO);
+                datosGlobales.miscelaneas = datosGlobales.otros; // Fallback para Misceláneas
 
                 renderizarSeccion(seccionActual);
             } catch (err) {
@@ -446,7 +449,7 @@
             const lista = datosGlobales[seccionId] || [];
 
             if (lista.length === 0) {
-                container.innerHTML = '<p class="loading">No hay productos disponibles.</p>';
+                container.innerHTML = '<p class="loading">No hay productos disponibles en esta sección.</p>';
                 return;
             }
 
@@ -586,7 +589,6 @@
             contadorCombosArmados++;
             const comboId = `combo_armado_${contadorCombosArmados}`;
 
-            // Agrupar como 1 solo paquete indivisible
             carritoGlobal[comboId] = {
                 nombre: `📦 Combo Personalizado #${contadorCombosArmados} (${totalItemsBorrador} art.)`,
                 detalles: listaDetallada.join('\n'),
@@ -595,7 +597,6 @@
                 esComboArmado: true
             };
 
-            // Vaciar borrador
             carritoComboBorrador = {};
 
             const cartBtn = document.getElementById('cart-target');
@@ -661,11 +662,10 @@
                 total += sub;
 
                 if (item.esComboArmado) {
-                    // Muestra el combo como 1 solo paquete con su lista y botón para borrarlo completo
                     html += `
                         <div class="cart-item-row">
                             <div class="cart-item-details">
-                                <strong style="color:#febd69;">${item.nombre}</strong><br>
+                                <strong style="color:#d4af37;">${item.nombre}</strong><br>
                                 <div class="cart-item-subtext">${item.detalles}</div>
                                 <span style="color:#00e676; font-weight:bold;">$${sub.toFixed(2)}</span>
                             </div>
@@ -675,7 +675,6 @@
                         </div>
                     `;
                 } else {
-                    // Productos individuales normales
                     html += `
                         <div class="cart-item-row">
                             <div class="cart-item-details">
