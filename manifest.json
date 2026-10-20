@@ -1,11 +1,11 @@
 {
-  "name": "Tienda de Combos",
-  "short_name": "Combos",
-  "description": "Catálogo digital en vivo de combos y productos para pedidos por WhatsApp.",
+  "name": "CALYOR - Tienda & Combos",
+  "short_name": "CALYOR",
+  "description": "Catálogo digital de combos y productos en Camagüey para pedidos por WhatsApp.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0b0f19",
-  "theme_color": "#1e293b",
+  "background_color": "#0f172a",
+  "theme_color": "#0a0f1a",
   "orientation": "portrait",
   "icons": [
     {
