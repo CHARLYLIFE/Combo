@@ -425,25 +425,30 @@
             }).filter(Boolean);
         }
 
-        async function fetchCSV(url) {
+        async function fetchCSVConBackup(url, claveLocal) {
             try {
                 const response = await fetch(url);
-                if (!response.ok) return [];
+                if (!response.ok) throw new Error("Error de red");
                 const text = await response.text();
-                return parseCSV(text);
+                if (text && text.trim().length > 0) {
+                    localStorage.setItem(claveLocal, text); // Guarda respaldo fijo en el teléfono
+                    return parseCSV(text);
+                }
             } catch (e) {
-                console.warn('Error cargando CSV desde:', url, e);
-                return [];
+                console.warn('Cargando respaldo offline para:', claveLocal);
             }
+            // Si está offline o la red falla, recupera la copia local previa
+            const copiaLocal = localStorage.getItem(claveLocal);
+            return copiaLocal ? parseCSV(copiaLocal) : [];
         }
 
         async function cargarDatos() {
-            datosGlobales.electrodomesticos = await fetchCSV(URL_CSV_ELECTRO);
-            datosGlobales.medicamentos = await fetchCSV(URL_CSV_MEDICINAS);
-            datosGlobales.combos = await fetchCSV(URL_CSV_COMBOS);
-            datosGlobales.armatubox = await fetchCSV(URL_CSV_ARMATUBOX);
-            datosGlobales.miscelaneas = await fetchCSV(URL_CSV_MISCELANEAS);
-            datosGlobales.otros = await fetchCSV(URL_CSV_OTROS);
+            datosGlobales.electrodomesticos = await fetchCSVConBackup(URL_CSV_ELECTRO, 'cache_electro');
+            datosGlobales.medicamentos = await fetchCSVConBackup(URL_CSV_MEDICINAS, 'cache_medicinas');
+            datosGlobales.combos = await fetchCSVConBackup(URL_CSV_COMBOS, 'cache_combos');
+            datosGlobales.armatubox = await fetchCSVConBackup(URL_CSV_ARMATUBOX, 'cache_armatubox');
+            datosGlobales.miscelaneas = await fetchCSVConBackup(URL_CSV_MISCELANEAS, 'cache_miscelaneas');
+            datosGlobales.otros = await fetchCSVConBackup(URL_CSV_OTROS, 'cache_otros');
 
             renderizarSeccion(seccionActual);
         }
