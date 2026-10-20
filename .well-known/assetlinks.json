@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "io.github.charlylife.twa",
-        "sha256_cert_fingerprints": ["04:CB:CD:FA:22:76:7A:2B:FC:88:1D:4B:41:87:0F:94:CD:21:AD:04:BC:EC:7D:1B:D8:F5:AA:4F:71:84:74:12"]
+        "sha256_cert_fingerprints": ["8D:98:6A:AD:64:1A:0A:D0:33:FC:D6:B1:02:41:B0:10:C0:2C:89:06:A4:CD:6F:BA:5A:A5:E1:C5:23:A2:D1:82"]
       }
     }]
