@@ -175,7 +175,7 @@
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
 
-        .product-price { font-size: 1.1rem; font-weight: 800; color: #00e676; margin-bottom: 8px; }
+        .product-price { font-size: 1.05rem; font-weight: 800; color: #00e676; margin-bottom: 8px; }
 
         /* CONTROLES DE CANTIDAD */
         .product-actions { display: flex; flex-direction: column; gap: 6px; }
@@ -232,7 +232,7 @@
             box-shadow: 0 0 15px rgba(0, 230, 118, 0.8);
         }
 
-        /* MODAL CARRITO CON EDICIÓN DE ÍTEMS */
+        /* MODAL CARRITO */
         .modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none;
             justify-content: center; align-items: center; z-index: 300; padding: 20px;
@@ -241,7 +241,7 @@
             background: #1e293b; width: 100%; max-width: 440px; padding: 22px;
             border-radius: 16px; border: 1px solid #334155; max-height: 90vh; overflow-y: auto;
         }
-        .modal-content h2 { font-size: 1.2rem; margin-bottom: 12px; color: #d4af37; display: flex; justify-content: space-between; }
+        .modal-content h2 { font-size: 1.15rem; margin-bottom: 12px; color: #d4af37; display: flex; flex-direction: column; gap: 4px; }
         
         .cart-summary-list {
             background: #0f172a; border-radius: 8px; padding: 10px; margin-bottom: 15px;
@@ -349,7 +349,10 @@
     <!-- MODAL DE PEDIDO COMPLETO -->
     <div class="modal" id="modalPedido">
         <div class="modal-content">
-            <h2>🛒 Tu Pedido Total <span id="modal-total-header" style="color:#00e676;">$0.00</span></h2>
+            <h2>
+                <span>🛒 Tu Pedido Total</span>
+                <span id="modal-total-header" style="color:#00e676; font-size:0.95rem;"></span>
+            </h2>
             
             <div class="cart-summary-list" id="cart-summary-items">
                 <!-- Ítems del pedido -->
@@ -373,11 +376,12 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
-        // ENLACES CSV DE GOOGLE SHEETS
+        // ENLACES CSV DIRECTOS DE CADA HOJA DE GOOGLE SHEETS
         const URL_CSV_COMBOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=0&single=true&output=csv';
         const URL_CSV_ARMATUBOX = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=100465993&single=true&output=csv';
         const URL_CSV_ELECTRO = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=2127319084&single=true&output=csv';
         const URL_CSV_MEDICINAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=1918521291&single=true&output=csv';
+        const URL_CSV_MISCELANEAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=671549051&single=true&output=csv';
         const URL_CSV_OTROS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT9XIUv_APUqzoTjZRyH8UhAcK1ee2cXWQDz9q7ApKVxu-UdSlOhdfE_TLDRdWUPKoSecHU2l1LZ98w/pub?gid=671549051&single=true&output=csv';
 
         let datosGlobales = { electrodomesticos: [], medicamentos: [], combos: [], armatubox: [], miscelaneas: [], otros: [] };
@@ -387,41 +391,61 @@
         let carritoComboBorrador = {};
         let contadorCombosArmados = 0;
 
+        function parseCSVLine(text) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim().replace(/^"|"$/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim().replace(/^"|"$/g, ''));
+            return result;
+        }
+
         function parseCSV(text) {
-            if (!text) return [];
-            const lines = text.trim().split('\n');
+            if (!text || text.trim().length === 0) return [];
+            const lines = text.trim().split(/\r?\n/);
             if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toUpperCase());
+            
+            const headers = parseCSVLine(lines[0]).map(h => h.toUpperCase());
             return lines.slice(1).map((line, idx) => {
                 if (!line.trim()) return null;
-                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                const values = parseCSVLine(line);
                 let obj = { ID: 'item_' + idx };
                 headers.forEach((h, i) => { obj[h] = values[i] || ''; });
                 return obj;
             }).filter(Boolean);
         }
 
-        async function cargarDatos() {
+        async function fetchCSV(url) {
             try {
-                const [resE, resM, resC, resA, resO] = await Promise.all([
-                    fetch(URL_CSV_ELECTRO).then(r => r.text()).catch(() => ''),
-                    fetch(URL_CSV_MEDICINAS).then(r => r.text()).catch(() => ''),
-                    fetch(URL_CSV_COMBOS).then(r => r.text()).catch(() => ''),
-                    fetch(URL_CSV_ARMATUBOX).then(r => r.text()).catch(() => ''),
-                    fetch(URL_CSV_OTROS).then(r => r.text()).catch(() => '')
-                ]);
-
-                datosGlobales.electrodomesticos = parseCSV(resE);
-                datosGlobales.medicamentos = parseCSV(resM);
-                datosGlobales.combos = parseCSV(resC);
-                datosGlobales.armatubox = parseCSV(resA);
-                datosGlobales.otros = parseCSV(resO);
-                datosGlobales.miscelaneas = datosGlobales.otros; // Fallback para Misceláneas
-
-                renderizarSeccion(seccionActual);
-            } catch (err) {
-                console.error("Error cargando catálogos", err);
+                const response = await fetch(url);
+                if (!response.ok) return [];
+                const text = await response.text();
+                return parseCSV(text);
+            } catch (e) {
+                console.warn('Error cargando CSV desde:', url, e);
+                return [];
             }
+        }
+
+        async function cargarDatos() {
+            datosGlobales.electrodomesticos = await fetchCSV(URL_CSV_ELECTRO);
+            datosGlobales.medicamentos = await fetchCSV(URL_CSV_MEDICINAS);
+            datosGlobales.combos = await fetchCSV(URL_CSV_COMBOS);
+            datosGlobales.armatubox = await fetchCSV(URL_CSV_ARMATUBOX);
+            datosGlobales.miscelaneas = await fetchCSV(URL_CSV_MISCELANEAS);
+            datosGlobales.otros = await fetchCSV(URL_CSV_OTROS);
+
+            renderizarSeccion(seccionActual);
         }
 
         function cambiarSeccion(seccionId, btn) {
@@ -444,6 +468,15 @@
             renderizarSeccion(seccionId);
         }
 
+        function formatearPrecio(precio, moneda) {
+            const m = (moneda || 'USD').toUpperCase().trim();
+            if (m === 'CUP') {
+                return `${Math.round(precio).toLocaleString()} CUP`;
+            } else {
+                return `$${precio.toFixed(2)} USD`;
+            }
+        }
+
         function renderizarSeccion(seccionId) {
             const container = document.getElementById(`grid-${seccionId}`);
             const lista = datosGlobales[seccionId] || [];
@@ -459,6 +492,7 @@
                 let rawDesc = item.DETALLES || item.DESC || '';
                 const desc = rawDesc.replaceAll(',', '\n').replaceAll('|', '\n');
                 const precio = parseFloat(item.PRECIO || 0);
+                const moneda = (item.MONEDA || 'USD').toUpperCase().trim();
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
@@ -475,17 +509,17 @@
                             <div class="product-img-container">${imgTag}</div>
                             <div class="product-title">${nombre}</div>
                             ${desc ? `<div class="product-desc">${desc}</div>` : ''}
-                            <div class="product-price">$${precio.toFixed(2)}</div>
+                            <div class="product-price">${formatearPrecio(precio, moneda)}</div>
                         </div>
                         <div class="product-actions">
                             ${enCarrito === 0 ? 
-                                `<button class="btn-add-cart-icon" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1, event)">
+                                `<button class="btn-add-cart-icon" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}', ${precio}, '${moneda}', 1, event)">
                                     🛒 Agregar
                                  </button>` :
                                 `<div class="qty-cart-control">
-                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, -1, event)">-</button>
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}', ${precio}, '${moneda}', -1, event)">-</button>
                                     <span class="qty-num-display">🛒 ${enCarrito}</span>
-                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}',${precio}, 1, event)">+</button>
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionId}', '${id}', '${nombre}', ${precio}, '${moneda}', 1, event)">+</button>
                                  </div>`
                             }
                         </div>
@@ -494,10 +528,10 @@
             }).join('');
         }
 
-        function cambiarCant(seccion, id, nombre, precio, cambio, event) {
+        function cambiarCant(seccion, id, nombre, precio, moneda, cambio, event) {
             if (seccion === 'armatubox') {
                 if (!carritoComboBorrador[id]) {
-                    carritoComboBorrador[id] = { nombre, precio, cantidad: 0 };
+                    carritoComboBorrador[id] = { nombre, precio, moneda, cantidad: 0 };
                 }
                 carritoComboBorrador[id].cantidad += cambio;
 
@@ -510,7 +544,7 @@
                 }
             } else {
                 if (!carritoGlobal[id]) {
-                    carritoGlobal[id] = { nombre, precio, cantidad: 0, esComboArmado: false };
+                    carritoGlobal[id] = { nombre, precio, moneda, cantidad: 0, esComboArmado: false };
                 }
                 carritoGlobal[id].cantidad += cambio;
 
@@ -571,16 +605,21 @@
             }, 1200);
         }
 
-        /* AGRUPAR TODO EL BORRADOR COMO UN SOLO "COMBO PERSONALIZADO" */
         function transferirComboAlCarritoPrincipal() {
             let totalItemsBorrador = 0;
-            let precioTotalCombo = 0;
+            let totalUSD = 0, totalCUP = 0;
             let listaDetallada = [];
 
             for (let id in carritoComboBorrador) {
                 const item = carritoComboBorrador[id];
                 totalItemsBorrador += item.cantidad;
-                precioTotalCombo += item.precio * item.cantidad;
+                const sub = item.precio * item.cantidad;
+                
+                if (item.moneda === 'CUP') {
+                    totalCUP += sub;
+                } else {
+                    totalUSD += sub;
+                }
                 listaDetallada.push(`• ${item.nombre} (x${item.cantidad})`);
             }
 
@@ -589,10 +628,16 @@
             contadorCombosArmados++;
             const comboId = `combo_armado_${contadorCombosArmados}`;
 
+            let textoPrecioCombo = [];
+            if (totalUSD > 0) textoPrecioCombo.push(`$${totalUSD.toFixed(2)} USD`);
+            if (totalCUP > 0) textoPrecioCombo.push(`${Math.round(totalCUP).toLocaleString()} CUP`);
+
             carritoGlobal[comboId] = {
                 nombre: `📦 Combo Personalizado #${contadorCombosArmados} (${totalItemsBorrador} art.)`,
                 detalles: listaDetallada.join('\n'),
-                precio: precioTotalCombo,
+                precioUSD: totalUSD,
+                precioCUP: totalCUP,
+                textoPrecio: textoPrecioCombo.join(' + '),
                 cantidad: 1,
                 esComboArmado: true
             };
@@ -605,15 +650,32 @@
 
             renderizarSeccion('armatubox');
             actualizarUI();
-            alert(`¡Tu Combo Personalizado (${totalItemsBorrador} artículos) fue empaquetado y añadido al Carrito Principal! 🛒`);
+            alert(`¡Tu Combo Personalizado (${totalItemsBorrador} artículos) fue añadido al Carrito Principal! 🛒`);
+        }
+
+        function calcularTotalesCarrito() {
+            let totalUSD = 0, totalCUP = 0, totalItems = 0;
+            for (let id in carritoGlobal) {
+                const item = carritoGlobal[id];
+                totalItems += item.cantidad;
+
+                if (item.esComboArmado) {
+                    totalUSD += (item.precioUSD || 0) * item.cantidad;
+                    totalCUP += (item.precioCUP || 0) * item.cantidad;
+                } else {
+                    const sub = item.precio * item.cantidad;
+                    if (item.moneda === 'CUP') {
+                        totalCUP += sub;
+                    } else {
+                        totalUSD += sub;
+                    }
+                }
+            }
+            return { totalUSD, totalCUP, totalItems };
         }
 
         function actualizarUI() {
-            let totalItemsGlobal = 0, totalPriceGlobal = 0;
-            for (let id in carritoGlobal) {
-                totalItemsGlobal += carritoGlobal[id].cantidad;
-                totalPriceGlobal += carritoGlobal[id].precio * carritoGlobal[id].cantidad;
-            }
+            const { totalUSD, totalCUP, totalItems } = calcularTotalesCarrito();
 
             let itemsBorrador = 0;
             for (let id in carritoComboBorrador) {
@@ -626,8 +688,8 @@
             const comboDisplay = document.getElementById('combo-count-display');
             const comboFinishBtn = document.getElementById('btn-combo-finish');
 
-            cartBadge.innerText = totalItemsGlobal;
-            if (totalItemsGlobal > 0) {
+            cartBadge.innerText = totalItems;
+            if (totalItems > 0) {
                 cartBtn.classList.add('glow-active');
                 btnModalSend.disabled = false;
             } else {
@@ -644,7 +706,11 @@
                 comboFinishBtn.innerText = `Faltan ${5 - itemsBorrador} art.`;
             }
 
-            document.getElementById('modal-total-header').innerText = `$${totalPriceGlobal.toFixed(2)}`;
+            let textoTotalesHeader = [];
+            if (totalUSD > 0) textoTotalesHeader.push(`$${totalUSD.toFixed(2)} USD`);
+            if (totalCUP > 0) textoTotalesHeader.push(`${Math.round(totalCUP).toLocaleString()} CUP`);
+
+            document.getElementById('modal-total-header').innerText = textoTotalesHeader.length > 0 ? textoTotalesHeader.join(' + ') : '$0.00 USD';
         }
 
         function abrirModalPedido() {
@@ -654,12 +720,10 @@
 
         function renderizarItemsModal() {
             const summaryContainer = document.getElementById('cart-summary-items');
-            let html = '', total = 0;
+            let html = '';
 
             for (let id in carritoGlobal) {
                 let item = carritoGlobal[id];
-                let sub = item.precio * item.cantidad;
-                total += sub;
 
                 if (item.esComboArmado) {
                     html += `
@@ -667,7 +731,7 @@
                             <div class="cart-item-details">
                                 <strong style="color:#d4af37;">${item.nombre}</strong><br>
                                 <div class="cart-item-subtext">${item.detalles}</div>
-                                <span style="color:#00e676; font-weight:bold;">$${sub.toFixed(2)}</span>
+                                <span style="color:#00e676; font-weight:bold;">${item.textoPrecio}</span>
                             </div>
                             <div class="cart-item-controls">
                                 <button class="btn-modal-delete" onclick="eliminarEnModal('${id}')" title="Eliminar este combo completo">🗑️</button>
@@ -675,11 +739,12 @@
                         </div>
                     `;
                 } else {
+                    let sub = item.precio * item.cantidad;
                     html += `
                         <div class="cart-item-row">
                             <div class="cart-item-details">
                                 <strong>${item.nombre}</strong><br>
-                                <span style="color:#00e676;">$${sub.toFixed(2)}</span> ($${item.precio.toFixed(2)} c/u)
+                                <span style="color:#00e676;">${formatearPrecio(sub, item.moneda)}</span> (${formatearPrecio(item.precio, item.moneda)} c/u)
                             </div>
                             <div class="cart-item-controls">
                                 <button class="btn-modal-qty" onclick="modificarEnModal('${id}', -1)">-</button>
@@ -697,7 +762,7 @@
             }
 
             summaryContainer.innerHTML = html;
-            document.getElementById('modal-total-header').innerText = `$${total.toFixed(2)}`;
+            actualizarUI();
         }
 
         function modificarEnModal(id, cambio) {
@@ -737,19 +802,28 @@
             msg += `📞 *Teléfono:* ${telefono}\n\n`;
             msg += `📦 *Detalle del Pedido:* \n`;
 
-            let total = 0;
+            let totalUSD = 0, totalCUP = 0;
+
             for(let id in carritoGlobal) {
                 let item = carritoGlobal[id];
-                let sub = item.precio * item.cantidad;
                 
                 if (item.esComboArmado) {
-                    msg += `\n*${item.nombre}* - $${sub.toFixed(2)}\n${item.detalles}\n`;
+                    msg += `\n*${item.nombre}* - ${item.textoPrecio}\n${item.detalles}\n`;
+                    totalUSD += (item.precioUSD || 0) * item.cantidad;
+                    totalCUP += (item.precioCUP || 0) * item.cantidad;
                 } else {
-                    msg += `- ${item.nombre} x${item.cantidad} ($${sub.toFixed(2)})\n`;
+                    let sub = item.precio * item.cantidad;
+                    msg += `- ${item.nombre} x${item.cantidad} (${formatearPrecio(sub, item.moneda)})\n`;
+                    if (item.moneda === 'CUP') totalCUP += sub;
+                    else totalUSD += sub;
                 }
-                total += sub;
             }
-            msg += `\n💰 *Total a pagar:* $${total.toFixed(2)}`;
+
+            msg += `\n💰 *Total a pagar:* `;
+            let resTotales = [];
+            if (totalUSD > 0) resTotales.push(`$${totalUSD.toFixed(2)} USD`);
+            if (totalCUP > 0) resTotales.push(`${Math.round(totalCUP).toLocaleString()} CUP`);
+            msg += resTotales.join(' + ');
 
             const url = `https://wa.me/+5350306150?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
@@ -772,6 +846,7 @@
                 const id = item.ID || `search_${i}`;
                 const nombre = item.NOMBRE || 'Producto';
                 const precio = parseFloat(item.PRECIO || 0);
+                const moneda = (item.MONEDA || 'USD').toUpperCase().trim();
                 const imgUrl = item.IMAGEN || item.FOTO || '';
                 const imgTag = imgUrl ? `<img src="${imgUrl}" class="product-img" id="img-${id}" alt="${nombre}" onerror="this.parentElement.style.display='none'">` : '';
 
@@ -787,17 +862,17 @@
                         <div>
                             <div class="product-img-container">${imgTag}</div>
                             <div class="product-title">${nombre}</div>
-                            <div class="product-price">$${precio.toFixed(2)}</div>
+                            <div class="product-price">${formatearPrecio(precio, moneda)}</div>
                         </div>
                         <div class="product-actions">
                             ${enCarrito === 0 ? 
-                                `<button class="btn-add-cart-icon" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1, event)">
+                                `<button class="btn-add-cart-icon" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}', ${precio}, '${moneda}', 1, event)">
                                     🛒 Agregar
                                  </button>` :
                                 `<div class="qty-cart-control">
-                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, -1, event)">-</button>
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}', ${precio}, '${moneda}', -1, event)">-</button>
                                     <span class="qty-num-display">🛒 ${enCarrito}</span>
-                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}',${precio}, 1, event)">+</button>
+                                    <button class="btn-qty-action" onclick="cambiarCant('${seccionActual}', '${id}', '${nombre}', ${precio}, '${moneda}', 1, event)">+</button>
                                  </div>`
                             }
                         </div>
