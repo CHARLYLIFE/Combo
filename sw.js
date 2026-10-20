@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calyor-app-v2';
+const CACHE_NAME = 'calyor-app-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -9,7 +9,7 @@ const ASSETS_TO_CACHE = [
   './icon-512.png'
 ];
 
-// Instalación del Service Worker
+// Instalación: Guarda todos los archivos base en la memoria local
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activación y limpieza de cachés antiguas
+// Activación: Elimina versiones antiguas de la caché
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -35,25 +35,33 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Estrategia de carga: Red primero para datos de Google Sheets, Fallback a caché
+// Intercepción de peticiones:
 self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('docs.google.com')) {
-    // Para los datos de Google Sheets, siempre ir a la red primero para precios actualizados
+  const requestUrl = new URL(event.request.url);
+
+  // 1. Datos de Google Sheets: SIEMPRE buscar en la red primero para actualizar precios/productos
+  if (requestUrl.hostname.includes('docs.google.com')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
-  } else {
-    // Para archivos estáticos (HTML, JS, imágenes), usar caché y actualizar en segundo plano
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-          });
-          return networkResponse;
-        });
-        return cachedResponse || fetchPromise;
-      })
-    );
+    return;
   }
+
+  // 2. Archivos estáticos e imágenes: CACHE-FIRST (Usa la memoria del teléfono directamente)
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse; // Devuelve directamente el archivo guardado localmente
+      }
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      });
+    })
+  );
 });
