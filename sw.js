@@ -1,8 +1,10 @@
-const CACHE_NAME = 'combos-app-v1';
+const CACHE_NAME = 'calyor-app-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './logo.png',
+  './banner.png',
   './icon-192.png',
   './icon-512.png'
 ];
@@ -33,10 +35,10 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Estrategia de carga: Red primero para datos frescos de Google Sheets, fallback a caché
+// Estrategia de carga: Red primero para datos de Google Sheets, Fallback a caché
 self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('docs.google.com')) {
-    // Para los datos de Google Sheets, siempre ir a la red primero para tener precios actualizados
+    // Para los datos de Google Sheets, siempre ir a la red primero para precios actualizados
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
